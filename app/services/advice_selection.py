@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import random
 from typing import Protocol, Sequence
 
 from app.models.advice import Advice, AdviceKind, AdviceRecommendation, AdviceRequestContext
@@ -115,9 +116,6 @@ class AdviceSelectionPipeline:
         if not candidates:
             candidates = await self._advice_repository.get_all()
 
-        if not candidates:
-            return None
-
         return self._rank_candidates(candidates, categories)
 
     @staticmethod
@@ -131,19 +129,32 @@ class AdviceSelectionPipeline:
 
     def _rank_candidates(
         self, candidates: Sequence[Advice], categories: Sequence[str]
-    ) -> Advice:
+    ) -> Advice | None:
+        if not candidates:
+            return None
+
         if not categories:
-            return candidates[0]
+            return random.choice(tuple(candidates))
 
         category_set = {category.lower() for category in categories}
-        sorted_candidates = sorted(
-            candidates,
-            key=lambda candidate: -len(
-                {category.lower() for category in candidate.categories}
-                & category_set
-            ),
-        )
-        return sorted_candidates[0]
+
+        scored_candidates: list[tuple[int, Advice]] = []
+        for candidate in candidates:
+            candidate_categories = {
+                category.lower() for category in candidate.categories
+            }
+            overlap = len(candidate_categories & category_set)
+            scored_candidates.append((overlap, candidate))
+
+        grouped: dict[int, list[Advice]] = {}
+        for score, candidate in scored_candidates:
+            grouped.setdefault(score, []).append(candidate)
+
+        for target_score in (3, 2, 1):
+            if target_score in grouped:
+                return random.choice(grouped[target_score])
+
+        return None
 
 
 class EchoAdviceResponseGenerator(AdviceResponseGenerator):
