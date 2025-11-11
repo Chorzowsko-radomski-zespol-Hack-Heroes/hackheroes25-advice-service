@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, Protocol, Sequence
+from typing import TYPE_CHECKING, Any, Protocol, Sequence
+
+if TYPE_CHECKING:  # pragma: no cover - optional dependency hint
+    from supabase.client import AsyncClient  # type: ignore[import]
+else:  # pragma: no cover - allow import without supabase installed
+    AsyncClient = Any  # type: ignore
 
 
 class AdviceCategoryRepository(Protocol):
@@ -12,18 +17,40 @@ class AdviceCategoryRepository(Protocol):
 
 
 class SupabaseAdviceCategoryRepository(AdviceCategoryRepository):
-    def __init__(self, client: Any) -> None:
+    _TABLE_NAME = "advice_categories"
+
+    def __init__(self, client: AsyncClient) -> None:  # type: ignore[misc]
         self._client = client
 
     async def get_all(self) -> Sequence[str]:
-        raise NotImplementedError(
-            "SupabaseAdviceCategoryRepository.get_all must be implemented with Supabase queries."
-        )
+        response = await self._client.table(self._TABLE_NAME).select("slug").order(
+            "slug"
+        ).execute()
+        self._raise_on_error(response)
+        slugs = []
+        for row in response.data or []:
+            slug = row.get("slug")
+            if isinstance(slug, str):
+                slugs.append(slug.lower())
+        return tuple(slugs)
 
     async def contains(self, category: str) -> bool:
-        raise NotImplementedError(
-            "SupabaseAdviceCategoryRepository.contains must be implemented with Supabase queries."
+        normalized = category.lower()
+        response = (
+            await self._client.table(self._TABLE_NAME)
+            .select("id")
+            .eq("slug", normalized)
+            .limit(1)
+            .execute()
         )
+        self._raise_on_error(response)
+        return bool(response.data)
+
+    @staticmethod
+    def _raise_on_error(response: Any) -> None:
+        error = getattr(response, "error", None)
+        if error:
+            raise RuntimeError(f"Supabase query failed: {error}")
 
 
 class StaticAdviceCategoryRepository(AdviceCategoryRepository):

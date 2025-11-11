@@ -1,5 +1,5 @@
 app = "hackheroes25-advice" # unikalna nazwa, każdy u siebie może zmienić
-primary_region = "waw"      # Frankfurt, blisko PL
+primary_region = "ams"      # Frankfurt, blisko PL
 
 [build]
 image = "python:3.11-slim"

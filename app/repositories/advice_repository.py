@@ -1,8 +1,17 @@
 from __future__ import annotations
 
-from typing import Any, Protocol, Sequence
+from typing import TYPE_CHECKING, Any, Callable, Protocol, Sequence
 
 from app.models.advice import Advice, AdviceKind
+
+if TYPE_CHECKING:  # pragma: no cover - optional dependency hint
+    from supabase.client import AsyncClient  # type: ignore[import]
+else:  # pragma: no cover - allow import without supabase installed
+    AsyncClient = Any  # type: ignore
+
+AdviceRow = dict[str, Any]
+CategoryLinkRow = dict[str, Any]
+QueryBuilder = Any
 
 
 class AdviceRepository(Protocol):
@@ -21,28 +30,114 @@ class AdviceRepository(Protocol):
 
 
 class SupabaseAdviceRepository(AdviceRepository):
-    def __init__(self, client: Any) -> None:
+    _TABLE_NAME = "advices"
+
+    def __init__(self, client: AsyncClient) -> None:  # type: ignore[misc]
         self._client = client
 
     async def get_all(self) -> Sequence[Advice]:
-        raise NotImplementedError(
-            "SupabaseAdviceRepository.get_all must be implemented with Supabase queries."
-        )
+        return await self._fetch_advices()
 
     async def get_by_kind(self, kind: AdviceKind) -> Sequence[Advice]:
-        raise NotImplementedError(
-            "SupabaseAdviceRepository.get_by_kind must be implemented with Supabase queries."
-        )
+        return await self._fetch_advices(lambda query: query.eq("kind", kind.value))
 
     async def get_by_kind_and_containing_any_category(
         self,
         kind: AdviceKind,
         categories: Sequence[str],
     ) -> Sequence[Advice]:
-        raise NotImplementedError(
-            "SupabaseAdviceRepository.get_by_kind_and_containing_any_category must be "
-            "implemented with Supabase queries."
+        category_slugs = tuple({category.lower() for category in categories})
+        if not category_slugs:
+            return ()
+
+        return await self._fetch_advices(
+            lambda query: query.eq("kind", kind.value).filter(
+                "advice_category_links.category.slug",
+                "in",
+                self._build_supabase_in_filter(category_slugs),
+            ),
+            inner_join_categories=True,
         )
+
+    async def _fetch_advices(
+        self,
+        apply_filters: Callable[[QueryBuilder], QueryBuilder] | None = None,
+        inner_join_categories: bool = False,
+    ) -> Sequence[Advice]:
+        category_select = (
+            "advice_category_links:advice_category_links"
+            f"{'!inner' if inner_join_categories else ''}"
+            "(category:advice_categories(slug))"
+        )
+
+        base_query = self._client.table(self._TABLE_NAME).select(
+            ",".join(
+                [
+                    "id",
+                    "name",
+                    "kind",
+                    "description",
+                    "link",
+                    "image_url",
+                    "author",
+                    category_select,
+                ]
+            )
+        )
+
+        query = apply_filters(base_query) if apply_filters else base_query
+        response = await query.execute()
+        self._raise_on_error(response)
+        rows: Sequence[AdviceRow] = response.data or []
+        return tuple(self._map_advice(row) for row in rows)
+
+    @staticmethod
+    def _build_supabase_in_filter(values: Sequence[Any]) -> str:
+        serialized_values = []
+        for value in values:
+            if isinstance(value, str):
+                escaped = value.replace('"', r'\"')
+                serialized_values.append(f'"{escaped}"')
+            else:
+                serialized_values.append(str(value))
+        serialized = ",".join(serialized_values)
+        return f"({serialized})"
+
+    @staticmethod
+    def _raise_on_error(response: Any) -> None:
+        error = getattr(response, "error", None)
+        if error:
+            raise RuntimeError(f"Supabase query failed: {error}")
+
+    def _map_advice(self, row: AdviceRow) -> Advice:
+        kind_value = row.get("kind")
+        try:
+            kind = AdviceKind(kind_value)
+        except ValueError as err:
+            raise RuntimeError(
+                f"Unknown advice kind received from Supabase: {kind_value}") from err
+
+        return Advice(
+            name=row.get("name", ""),
+            kind=kind,
+            description=row.get("description") or "",
+            link_url=row.get("link"),
+            image_url=row.get("image_url"),
+            author=row.get("author"),
+            categories=self._extract_categories(row),
+        )
+
+    @staticmethod
+    def _extract_categories(row: AdviceRow) -> Sequence[str]:
+        links: Sequence[CategoryLinkRow] = row.get(
+            "advice_category_links") or ()
+        categories: list[str] = []
+        for link in links:
+            category = link.get("category") or {}
+            slug = category.get("slug")
+            if isinstance(slug, str):
+                categories.append(slug.lower())
+        return tuple(categories)
 
 
 class InMemoryAdviceRepository(AdviceRepository):
