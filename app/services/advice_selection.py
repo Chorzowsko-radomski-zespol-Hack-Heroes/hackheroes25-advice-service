@@ -5,7 +5,8 @@ import asyncio
 import logging
 import random
 import unicodedata
-from typing import TYPE_CHECKING, Any, Protocol, Sequence
+from collections import Counter
+from typing import TYPE_CHECKING, Any, Mapping, Protocol, Sequence
 
 from app.models.advice import Advice, AdviceKind, AdviceRecommendation, AdviceRequestContext
 from app.repositories.advice_repository import AdviceRepository
@@ -30,8 +31,15 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+@dataclass(frozen=True)
+class CategoryMatch:
+    name: str
+    score: float
+    rank: int
+
+
 class AdviceCategoryClassifier(Protocol):
-    async def infer_categories(self, user_message: str) -> Sequence[str]:
+    async def infer_categories(self, user_message: str) -> Sequence[CategoryMatch]:
         raise NotImplementedError
 
 
@@ -70,27 +78,26 @@ class AdviceSelectionPipeline:
         category_classifier: AdviceCategoryClassifier,
         intent_detector: AdviceIntentDetector,
         response_generator: AdviceResponseGenerator,
+        *,
+        max_item_categories: int = 7,
     ) -> None:
         self._advice_repository = advice_repository
         self._category_repository = category_repository
         self._category_classifier = category_classifier
         self._intent_detector = intent_detector
         self._response_generator = response_generator
+        self._max_item_categories = max_item_categories
+        self._category_frequency_cache: dict[str, int] | None = None
+        self._total_advice_count: int = 0
+        self._frequency_lock = asyncio.Lock()
 
     async def recommend(self, request: AdviceRequestContext) -> AdviceRecommendation:
-        logger.info(
-            "Pipeline recommend start user=%s message_len=%d",
-            request.user_identifier.user_id or "anonymous",
-            len(request.user_message),
-        )
-        categories = await self._infer_categories(request.user_message)
-        logger.info("Pipeline categories=%s", categories or "[]")
+        category_matches = await self._infer_categories(request.user_message)
         preferred_kind = await self._intent_detector.detect_preferred_kind(
             request.user_message
         )
-        logger.info("Pipeline preferred_kind=%s", preferred_kind or "none")
 
-        advice = await self._select_advice(preferred_kind, categories)
+        advice = await self._select_advice(preferred_kind, category_matches)
         if advice is None:
             raise AdviceNotFoundError(
                 "No advice found for the given criteria.")
@@ -98,79 +105,93 @@ class AdviceSelectionPipeline:
         chat_response = await self._response_generator.generate_response(
             advice=advice,
             request=request,
-            categories=categories,
+            categories=tuple(match.name for match in category_matches),
             preferred_kind=preferred_kind,
         )
         return AdviceRecommendation(advice=advice, chat_response=chat_response)
 
-    async def _infer_categories(self, user_message: str) -> Sequence[str]:
-        inferred = await self._category_classifier.infer_categories(user_message)
-        if not inferred:
-            logger.info("Classifier produced no categories for message.")
+    async def _infer_categories(self, user_message: str) -> Sequence[CategoryMatch]:
+        inferred_matches = await self._category_classifier.infer_categories(
+            user_message
+        )
+        if not inferred_matches:
+            logger.info(
+                "Nie wykryto żadnych kategorii w wypowiedzi użytkownika.")
             return ()
         known_categories = await self._category_repository.get_all()
         variant_map = self._build_known_category_map(known_categories)
-        unique_categories = []
-        for category in inferred:
-            normalized = category.lower()
+        unique_categories: list[CategoryMatch] = []
+        seen = set()
+        for match in inferred_matches:
+            normalized = match.name.lower()
             matched_name = self._match_category_to_known(
                 normalized, variant_map)
             if matched_name:
                 canonical = matched_name
-                if canonical not in unique_categories:
-                    unique_categories.append(canonical)
+                if canonical.lower() not in seen:
+                    seen.add(canonical.lower())
+                    unique_categories.append(
+                        CategoryMatch(
+                            name=canonical,
+                            score=match.score,
+                            rank=match.rank,
+                        )
+                    )
                     logger.info(
-                        "Classifier category '%s' matched repository name '%s'.",
-                        normalized,
+                        "Wykryta kategoria '%s' | score=%.3f | pozycja=%d",
                         canonical,
+                        match.score,
+                        match.rank,
                     )
             else:
                 logger.info(
-                    "Classifier category '%s' not in known set. Variants tried=%s",
-                    normalized,
+                    "Kategoria '%s' nie pasuje do bazy (próbowano wariantów: %s)",
+                    match.name,
                     self._build_category_variants(normalized),
                 )
         if not unique_categories:
             logger.info(
-                "No classifier categories matched known repository categories.")
+                "Żadna wykryta kategoria nie istnieje w bazie kategorii.")
         return tuple(unique_categories)
 
     async def _select_advice(
         self,
         preferred_kind: AdviceKind | None,
-        categories: Sequence[str],
+        matched_categories: Sequence[CategoryMatch],
     ) -> Advice | None:
         candidates: Sequence[Advice] = ()
+        category_names = tuple(match.name for match in matched_categories)
 
         if preferred_kind is not None:
-            if categories:
+            if matched_categories:
                 candidates = await self._advice_repository.get_by_kind_and_containing_any_category(
                     preferred_kind,
-                    categories,
+                    category_names,
                 )
             if not candidates:
                 candidates = await self._advice_repository.get_by_kind(preferred_kind)
-                logger.info(
-                    "Candidates from kind filtering count=%d", len(candidates)
-                )
+            if not candidates:
+                candidates = await self._advice_repository.get_by_kind(preferred_kind)
 
         if not candidates:
-            if categories:
+            if matched_categories:
                 all_advice = await self._advice_repository.get_all()
                 candidates = tuple(
                     advice
                     for advice in all_advice
-                    if self._contains_any_category(advice, categories)
-                )
-                logger.info(
-                    "Candidates after category scan count=%d", len(candidates)
+                    if self._contains_any_category(advice, category_names)
                 )
 
         if not candidates:
             candidates = await self._advice_repository.get_all()
-            logger.info("Candidates fallback to all count=%d", len(candidates))
 
-        selected = self._rank_candidates(candidates, categories)
+        await self._ensure_category_frequencies()
+        selected = self._rank_candidates(
+            candidates,
+            matched_categories,
+            self._category_frequency_cache or {},
+            max(self._total_advice_count, len(candidates)),
+        )
         if selected:
             logger.info("Pipeline selected advice name='%s'", selected.name)
         else:
@@ -188,46 +209,77 @@ class AdviceSelectionPipeline:
         return False
 
     def _rank_candidates(
-        self, candidates: Sequence[Advice], categories: Sequence[str]
+        self,
+        candidates: Sequence[Advice],
+        matched_categories: Sequence[CategoryMatch],
+        category_frequencies: Mapping[str, int],
+        total_advice_count: int,
     ) -> Advice | None:
         if not candidates:
             return None
 
-        if not categories:
+        if not matched_categories:
             return random.choice(tuple(candidates))
 
-        category_set = {category.lower() for category in categories}
+        match_map = {match.name.lower(): match for match in matched_categories}
+        population: list[Advice] = []
+        weights: list[float] = []
 
-        scored_candidates: list[tuple[int, Advice]] = []
         for candidate in candidates:
-            candidate_categories = {
+            candidate_category_set = {
                 category.lower() for category in candidate.categories
             }
-            overlap = len(candidate_categories & category_set)
-            scored_candidates.append((overlap, candidate))
+            applicable_matches = [
+                match_map[name]
+                for name in candidate_category_set
+                if name in match_map
+            ]
 
-        grouped: dict[int, list[Advice]] = {}
-        max_overlap = 0
-        for score, candidate in scored_candidates:
-            grouped.setdefault(score, []).append(candidate)
-            if score > max_overlap:
-                max_overlap = score
+            if not applicable_matches:
+                population.append(candidate)
+                weights.append(0.001)
+                continue
 
-        if max_overlap == 0:
-            return None
+            for match in applicable_matches:
+                freq = category_frequencies.get(match.name.lower(), 0)
+                if freq == 1 and match.rank == 1:
+                    logger.info(
+                        "Unique top category '%s' found only in advice '%s'; selecting deterministically.",
+                        match.name,
+                        candidate.name,
+                    )
+                    return candidate
 
-        max_considered = min(max_overlap, 6)
-        for target_score in range(max_considered, 0, -1):
-            candidates_at_score = grouped.get(target_score)
-            if candidates_at_score:
-                logger.info(
-                    "Ranking selecting from %d candidates with overlap=%d",
-                    len(candidates_at_score),
-                    target_score,
-                )
-                return random.choice(candidates_at_score)
+            specificity = (self._max_item_categories + 1) / (
+                len(candidate.categories) + 1
+            )
+            weight = 0.0
+            for match in applicable_matches:
+                freq = category_frequencies.get(match.name.lower(), 0) or 1
+                rarity = ((total_advice_count + 1) / (freq + 1)) ** 2
+                if freq == 1 and match.rank == 2:
+                    rarity *= 12
+                ranking_weight = (
+                    len(matched_categories) - match.rank + 1
+                ) / len(matched_categories)
+                similarity = match.score ** 2
+                incremental = similarity * ranking_weight * rarity * specificity
+                weight += incremental
 
-        return None
+            weight *= random.uniform(0.9, 1.1)
+            weights.append(max(weight, 0.02))
+            population.append(candidate)
+
+        total_weight = sum(weights)
+        if total_weight <= 0:
+            return random.choice(tuple(candidates))
+
+        selected = random.choices(
+            population=population, weights=weights, k=1)[0]
+        selected_index = population.index(selected)
+        self._log_weights(population, weights,
+                          selected_index, matched_categories)
+        return selected
 
     @staticmethod
     @staticmethod
@@ -276,6 +328,48 @@ class AdviceSelectionPipeline:
                 mapping.setdefault(key, name)
         return mapping
 
+    async def _ensure_category_frequencies(self) -> None:
+        if self._category_frequency_cache is not None:
+            return
+        async with self._frequency_lock:
+            if self._category_frequency_cache is not None:
+                return
+            all_advice = await self._advice_repository.get_all()
+            counter: Counter[str] = Counter()
+            for advice in all_advice:
+                seen = set()
+                for category in advice.categories:
+                    normalized = category.lower()
+                    if normalized not in seen:
+                        counter[normalized] += 1
+                        seen.add(normalized)
+            self._category_frequency_cache = dict(counter)
+            self._total_advice_count = len(all_advice)
+            logger.info(
+                "Zaktualizowano częstotliwości kategorii (liczba porad=%d).",
+                self._total_advice_count,
+            )
+
+    @staticmethod
+    def _log_weights(
+        population: Sequence[Advice],
+        weights: Sequence[float],
+        selected_index: int,
+        matched_categories: Sequence[CategoryMatch],
+    ) -> None:
+        lines = ["Podsumowanie wag dla kandydatów:"]
+        for idx, (advice, weight) in enumerate(zip(population, weights)):
+            marker = " <= WYBRANA" if idx == selected_index else ""
+            lines.append(f"  - {advice.name}: waga={weight:.3f}{marker}")
+        lines.append(
+            "Kategorie podstawowe: "
+            + ", ".join(
+                f"{match.name} (rank={match.rank}, score={match.score:.3f})"
+                for match in matched_categories
+            )
+        )
+        logger.info("\n".join(lines))
+
 
 class EchoAdviceResponseGenerator(AdviceResponseGenerator):
     async def generate_response(
@@ -305,9 +399,15 @@ class StaticAdviceCategoryClassifier(AdviceCategoryClassifier):
     def __init__(self, fallback_category: str = "general") -> None:
         self._fallback_category = fallback_category
 
-    async def infer_categories(self, user_message: str) -> Sequence[str]:
+    async def infer_categories(self, user_message: str) -> Sequence[CategoryMatch]:
         if user_message.strip():
-            return (self._fallback_category,)
+            return (
+                CategoryMatch(
+                    name=self._fallback_category,
+                    score=1.0,
+                    rank=1,
+                ),
+            )
         return ()
 
 
@@ -326,7 +426,7 @@ class OpenAIEmbeddingCategoryClassifier(AdviceCategoryClassifier):
         client: OpenAIClient | None = None,
         model: str | None = None,
         similarity_threshold: float = 0.25,
-        max_categories: int | None = 5,
+        max_categories: int | None = 6,
     ) -> None:
         if _RuntimeAsyncOpenAI is None:
             raise RuntimeError(
@@ -348,7 +448,8 @@ class OpenAIEmbeddingCategoryClassifier(AdviceCategoryClassifier):
         self._max_categories = max_categories
         self._definitions = tuple(
             EmbeddingCategoryDefinition(
-                name=definition.name.lower(), description=definition.description
+                name=definition.name.strip(),
+                description=definition.description,
             )
             for definition in categories
         )
@@ -363,7 +464,7 @@ class OpenAIEmbeddingCategoryClassifier(AdviceCategoryClassifier):
             self._max_categories if self._max_categories is not None else "unlimited",
         )
 
-    async def infer_categories(self, user_message: str) -> Sequence[str]:
+    async def infer_categories(self, user_message: str) -> Sequence[CategoryMatch]:
         message = user_message.strip()
         if not message:
             return ()
@@ -374,19 +475,19 @@ class OpenAIEmbeddingCategoryClassifier(AdviceCategoryClassifier):
         if not message_embedding:
             return ()
 
-        scored: list[tuple[float, str]] = []
+        scored_pairs: list[tuple[float, str]] = []
         for vector, definition in zip(self._category_embeddings, self._definitions):
             score = self._cosine_similarity(message_embedding, vector)
             if score >= self._similarity_threshold:
-                scored.append((score, definition.name))
+                scored_pairs.append((score, definition.name))
 
-        scored.sort(reverse=True, key=lambda item: item[0])
-        if scored:
+        scored_pairs.sort(reverse=True, key=lambda item: item[0])
+        if scored_pairs:
             lines = [
                 "Detected categories (similarity score):",
                 *[
                     f"  - {slug}: {score:.3f}"
-                    for score, slug in scored
+                    for score, slug in scored_pairs
                 ],
             ]
             logger.info("\n".join(lines))
@@ -397,8 +498,13 @@ class OpenAIEmbeddingCategoryClassifier(AdviceCategoryClassifier):
             )
 
         if self._max_categories is not None:
-            scored = scored[: self._max_categories]
-        return tuple(slug for _, slug in scored)
+            scored_pairs = scored_pairs[: self._max_categories]
+
+        matches = tuple(
+            CategoryMatch(name=name, score=score, rank=index + 1)
+            for index, (score, name) in enumerate(scored_pairs)
+        )
+        return matches
 
     async def _ensure_category_embeddings(self) -> None:
         if self._category_embeddings is not None:
