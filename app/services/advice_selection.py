@@ -3,10 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 import asyncio
 import logging
+import os
 import random
+import re
 import unicodedata
 from collections import Counter
-from typing import TYPE_CHECKING, Any, Mapping, Protocol, Sequence
+from typing import TYPE_CHECKING, Any, Callable, Mapping, Protocol, Sequence
 
 from app.models.advice import Advice, AdviceKind, AdviceRecommendation, AdviceRequestContext
 from app.repositories.advice_repository import AdviceRepository
@@ -16,6 +18,7 @@ from app.integrations.openai import (
     create_async_openai_client,
     get_openai_settings,
 )
+from app.repositories.user_persona_repository import UserPersonaProvider
 
 if TYPE_CHECKING:  # pragma: no cover - typing helper
     from openai import AsyncOpenAI as OpenAIClient  # type: ignore[import]
@@ -99,6 +102,11 @@ class AdviceSelectionPipeline:
         self._total_advice_count: int = 0
         self._frequency_lock = asyncio.Lock()
         self._latest_events: list[str] = []
+        if hasattr(self._response_generator, "set_log_sink"):
+            try:
+                self._response_generator.set_log_sink(self._record)  # type: ignore[attr-defined]
+            except TypeError:
+                pass
 
     async def recommend(self, request: AdviceRequestContext) -> AdviceRecommendation:
         self._latest_events = []
@@ -394,9 +402,8 @@ class AdviceSelectionPipeline:
                         seen.add(normalized)
             self._category_frequency_cache = dict(counter)
             self._total_advice_count = len(all_advice)
-            logger.info(
-                "Zaktualizowano częstotliwości kategorii (liczba porad=%d).",
-                self._total_advice_count,
+            self._record(
+                f"Zaktualizowano częstotliwości kategorii na podstawie {self._total_advice_count} porad."
             )
 
     def _log_weights(
@@ -429,6 +436,9 @@ class AdviceSelectionPipeline:
 
 
 class EchoAdviceResponseGenerator(AdviceResponseGenerator):
+    def set_log_sink(self, sink: Callable[[str], None]) -> None:  # pragma: no cover - compatibility hook
+        pass
+
     async def generate_response(
         self,
         advice: Advice,
@@ -564,6 +574,158 @@ class OpenAIEmbeddingAdviceIntentDetector(AdviceIntentDetector):
             input=list(texts),
         )
         return [tuple(item.embedding) for item in response.data]
+
+
+class LLMAdviceResponseGenerator(AdviceResponseGenerator):
+    def __init__(
+        self,
+        persona_provider: UserPersonaProvider,
+        *,
+        client: OpenAIClient | None = None,
+        model: str | None = None,
+    ) -> None:
+        if _RuntimeAsyncOpenAI is None:
+            raise RuntimeError(
+                "openai package not installed. Install it with `pip install openai`."
+            )
+        self._persona_provider = persona_provider
+        runtime_client: OpenAIClient = client or create_async_openai_client(get_openai_settings())
+        if not isinstance(runtime_client, _RuntimeAsyncOpenAI):
+            raise TypeError("client must be an instance of openai.AsyncOpenAI.")
+        self._client = runtime_client
+        self._model = model or os.getenv("OPENAI_RESPONSE_MODEL") or "gpt-5-mini"
+        self._log_sink: Callable[[str], None] | None = None
+
+    def set_log_sink(self, sink: Callable[[str], None]) -> None:
+        self._log_sink = sink
+
+    def _log(self, message: str) -> None:
+        if self._log_sink:
+            self._log_sink(message)
+        else:
+            logger.info(message)
+
+    async def generate_response(
+        self,
+        advice: Advice,
+        request: AdviceRequestContext,
+        categories: Sequence[str],
+        preferred_kind: AdviceKind | None,
+    ) -> str:
+        self._log(
+            f"Generuję odpowiedź LLM dla porady '{advice.name}' typu {advice.kind.value}."
+        )
+        persona_text: str | None = None
+        user_id = request.user_identifier.user_id
+        if user_id:
+            persona_text = await self._persona_provider.get_persona(user_id)
+            if persona_text:
+                self._log("Pobrano opis osobowości użytkownika.")
+            else:
+                self._log(
+                    "Brak zapisanego opisu osobowości dla użytkownika – użyję neutralnego tonu."
+                )
+        else:
+            self._log("Brak identyfikatora użytkownika – persona nie będzie wykorzystana.")
+
+        advice_description = advice.description or "Brak dodatkowego opisu."
+        categories_text = (
+            ", ".join(categories) if categories else "brak kategorii dopasowanych wprost"
+        )
+
+        persona_prompt = (
+            persona_text
+            if persona_text
+            else "Nie posiadamy szczegółowego opisu osobowości; odpowiedz w sposób serdeczny, empatyczny i uniwersalny."
+        )
+
+        system_prompt = (
+            "You are a concise, caring assistant. "
+            "Craft responses that are empathetic, supportive, and action oriented. "
+            "Always produce exactly ten sentences. "
+            "Do not include hyperlinks or bullet lists."
+        )
+
+        user_prompt = (
+            "User message:\n"
+            f"{request.user_message}\n\n"
+            "Advice details:\n"
+            f"Name: {advice.name}\n"
+            f"Kind: {advice.kind.value}\n"
+            f"Description: {advice_description}\n"
+            f"Categories considered: {categories_text}\n\n"
+            "Persona description:\n"
+            f"{persona_prompt}\n\n"
+            "Write exactly 10 sentences that:\n"
+            "1. Odnoszą się do potrzeb użytkownika.\n"
+            "2. Wyjaśniają, dlaczego wybrana porada może pomóc i jak ją zastosować.\n"
+            "3. Utrzymują ton zwięzły, wspierający, opiekuńczy i pełen nadziei.\n"
+            "4. Nie zawierają linków ani zachęt do opuszczenia rozmowy.\n"
+            "5. Upewniają użytkownika, że jest zrozumiany.\n"
+        )
+
+        try:
+            response = await self._client.responses.create(
+                model=self._model,
+                input=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+            )
+            completion_text = getattr(response, "output_text", None)
+            if not completion_text and getattr(response, "output", None):
+                parts = []
+                for item in response.output:
+                    for content in getattr(item, "content", []):
+                        text = getattr(content, "text", None)
+                        if text:
+                            parts.append(text)
+                completion_text = "\n".join(parts)
+            if completion_text:
+                completion_text = completion_text.strip()
+                sentences = [s for s in re.split(r"(?<=[.!?])\s+", completion_text) if s]
+                if len(sentences) == 10:
+                    self._log("Odpowiedź LLM wygenerowana pomyślnie.")
+                    return completion_text
+                self._log(
+                    f"LLM zwrócił {len(sentences)} zdań zamiast 10 – używam fallbacku."
+                )
+            else:
+                self._log("LLM nie zwrócił treści – używam fallbacku.")
+        except Exception as exc:  # pragma: no cover - network guard
+            self._log(f"Błąd generowania odpowiedzi przez LLM: {exc}")
+
+        return self._fallback_response(advice, request.user_message, persona_text)
+
+    def _fallback_response(
+        self,
+        advice: Advice,
+        user_message: str,
+        persona_text: str | None,
+    ) -> str:
+        raw_description = advice.description or (
+            "Ta propozycja zawiera wartościowe wskazówki, które możesz spokojnie zastosować."
+        )
+        clean_description = re.sub(r"[.!?]+", "", raw_description).strip()
+        persona_hint = (
+            "Widzę, że Twój opis osobowości jest dla mnie ważny i chcę wesprzeć Cię w tym tonie."
+            if persona_text
+            else "Nie mam pełnego wglądu w Twoją osobowość, ale wciąż chcę wesprzeć Cię najlepiej jak potrafię."
+        )
+        persona_sentence = f"{persona_hint.rstrip('.!?')}."
+        sentences = [
+            "Dziękuję, że podzieliłeś się tym, co teraz przeżywasz.",
+            persona_sentence,
+            f"Wybrałam poradę '{advice.name}', ponieważ wierzę, że jest szczególnie adekwatna do Twojej sytuacji.",
+            f"To {advice.kind.value.replace('_', ' ')} skupione na następującym kierunku działania: {clean_description}.",
+            "Zachęcam Cię, abyś podszedł do tej propozycji krok po kroku i łagodnie wobec siebie.",
+            "Zwróć uwagę na to, co w tej poradzie najbardziej rezonuje z Twoimi wartościami i aktualnymi potrzebami.",
+            "Jeśli pojawią się trudniejsze emocje, nazwij je i pozwól sobie je odczuć zamiast je tłumić.",
+            "Możesz zrobić pierwszy mały krok jeszcze dziś, nawet jeśli będzie symboliczny.",
+            "Pamiętaj, że proszenie o wsparcie i korzystanie z narzędzi to oznaka odwagi, nie słabości.",
+            "Jestem przy Tobie, by pomagać Ci przejść przez ten etap z troską i nadzieją.",
+        ]
+        return " ".join(sentences)
 
 
 class StaticAdviceCategoryClassifier(AdviceCategoryClassifier):

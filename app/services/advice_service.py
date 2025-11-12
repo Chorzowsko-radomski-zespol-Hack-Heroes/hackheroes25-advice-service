@@ -3,6 +3,7 @@ import logging
 import os
 from typing import Protocol, Sequence
 
+from app.integrations.openai import create_async_openai_client, get_openai_settings
 from app.integrations.supabase import create_supabase_async_client
 from app.repositories.advice_repository import SupabaseAdviceRepository
 from app.repositories.category_repository import SupabaseAdviceCategoryRepository
@@ -24,9 +25,16 @@ from app.services.advice_selection import (
     OpenAIEmbeddingAdviceIntentDetector,
     EmbeddingCategoryDefinition,
     EchoAdviceResponseGenerator,
+    LLMAdviceResponseGenerator,
     NullAdviceIntentDetector,
     OpenAIEmbeddingCategoryClassifier,
     StaticAdviceCategoryClassifier,
+)
+from app.repositories.mock_persona_repository import MockUserPersonaRepository
+from app.repositories.user_persona_repository import (
+    NullUserPersonaProvider,
+    SupabaseUserPersonaRepository,
+    UserPersonaProvider,
 )
 
 logger = logging.getLogger(__name__)
@@ -86,7 +94,20 @@ def build_default_advice_pipeline() -> AdviceSelectionPipeline:
     category_repository = build_default_category_repository()
     category_classifier = StaticAdviceCategoryClassifier()
     intent_detector = NullAdviceIntentDetector()
-    response_generator = EchoAdviceResponseGenerator()
+    persona_repository = MockUserPersonaRepository(
+        personas={
+            "demo-ui-user": (
+                "Introwertyczny umysł, potrzebujący przestrzeni, ceniący głębokie relacje, "
+                "kochający spokój i analityczne podejście do codziennych wyzwań. "
+                "W wolnym czasie skupia się na rozwoju osobistym poprzez czytanie i refleksję."
+            )
+        }
+    )
+    response_generator = LLMAdviceResponseGenerator(
+        persona_provider=persona_repository,
+        client=create_async_openai_client(get_openai_settings()),
+        model=os.getenv("OPENAI_RESPONSE_MODEL") or "gpt-5-mini",
+    )
 
     return AdviceSelectionPipeline(
         advice_repository=advice_repository,
@@ -125,7 +146,30 @@ def build_supabase_advice_pipeline() -> AdviceSelectionPipeline:
             openai_error,
         )
         intent_detector = NullAdviceIntentDetector()
-    response_generator = EchoAdviceResponseGenerator()
+    # persona_provider = build_user_persona_provider(client)
+    persona_provider = MockUserPersonaRepository(
+        personas={
+            "demo-ui-user": (
+                "Uwielbia pianino, jest spontaniczna, emocjonalna i lubi eksperymentować. "
+                "kocha wyzwania, ale uważa że czasem brakuje jej sensu w życiu."
+                "W wolnym czasie skupia się na rozwoju osobistym poprzez czytanie i refleksję."
+                "Ma lewicowe poglądy polityczne i bardzo interesuje się polityką."
+                "Myśli nad studiami psychologii, socjologii lub politologii."
+            )
+        }
+    )
+    try:
+        response_generator = build_openai_response_generator(persona_provider)
+        logger.info(
+            "Using LLMAdviceResponseGenerator with model '%s'.",
+            os.getenv("OPENAI_RESPONSE_MODEL", "gpt-5-mini"),
+        )
+    except RuntimeError as openai_error:
+        logger.warning(
+            "Falling back to EchoAdviceResponseGenerator due to OpenAI setup issue: %s",
+            openai_error,
+        )
+        response_generator = EchoAdviceResponseGenerator()
 
     return AdviceSelectionPipeline(
         advice_repository=advice_repository,
@@ -172,6 +216,31 @@ def build_openai_intent_detector() -> OpenAIEmbeddingAdviceIntentDetector:
         threshold=0.485,
         log_limit=5,
         model=intent_model,
+    )
+
+
+def build_user_persona_provider(client) -> UserPersonaProvider:
+    table_name = os.getenv("SUPABASE_USER_PERSONA_TABLE")
+    try:
+        return SupabaseUserPersonaRepository(client, table_name=table_name)
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.warning(
+            "Falling back to NullUserPersonaProvider due to issue with persona repository: %s",
+            exc,
+        )
+        return NullUserPersonaProvider()
+
+
+def build_openai_response_generator(
+    persona_provider: UserPersonaProvider,
+) -> LLMAdviceResponseGenerator:
+    settings = get_openai_settings()
+    client = create_async_openai_client(settings)
+    model = os.getenv("OPENAI_RESPONSE_MODEL") or "gpt-5-mini"
+    return LLMAdviceResponseGenerator(
+        persona_provider=persona_provider,
+        client=client,
+        model=model,
     )
 
 

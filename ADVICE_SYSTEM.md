@@ -10,9 +10,9 @@
    - For Supabase mode, builds:
      - `SupabaseAdviceRepository`
      - `SupabaseAdviceCategoryRepository`
-     - `OpenAIEmbeddingCategoryClassifier`
-     - `OpenAIEmbeddingAdviceIntentDetector`
-     - `EchoAdviceResponseGenerator` (placeholder)
+    - `OpenAIEmbeddingCategoryClassifier`
+    - `OpenAIEmbeddingAdviceIntentDetector`
+    - `LLMAdviceResponseGenerator` (OpenAI LLM)
 
 3. **AdviceSelectionPipeline**
    - **Category inference**
@@ -21,7 +21,7 @@
      - Matches names against categories stored in Supabase (`advice_categories.name`) using a flexible variant map (supports lowercase, ASCII, `-`, `_`).
   - **Intent detection**
     - `OpenAIEmbeddingAdviceIntentDetector` embedduje wypowiedź do TOP5 wyników i porównuje z opisami każdego `AdviceKind`.
-    - Gdy najwyższy wynik przekracza próg (domyślnie 0.45) pipeline traktuje go jako prośbę o konkretny rodzaj, w przeciwnym razie przyjmuje pełną swobodę wyboru.
+    - Gdy najwyższy wynik przekroczy próg (domyślnie 0.485) pipeline traktuje go jako prośbę o konkretny rodzaj, w przeciwnym razie przyjmuje pełną swobodę wyboru.
    - **Candidate retrieval**
      - If preferred kind is present, fetches advices of that kind filtered by matched categories, otherwise by overlap, falling back to the entire catalogue.
   - **Ranking & selection**
@@ -35,8 +35,9 @@
       - Adds jitter (±15%) to avoid deterministic behaviour.
     - If a candidate is the sole advice containing the top-ranked category (frequency = 1 and rank = 1) it is returned immediately (100% probability). Rank 2 still receives a very high boost.
     - Otherwise applies a weighted random choice across all candidates based on the computed weights, ensuring a mix of determinism and variety.
-   - **Response rendering**
-     - `AdviceRecommendation` wraps the advice domain object and a placeholder chat response (to be replaced by LLM-driven text).
+  - **Response rendering**
+    - `LLMAdviceResponseGenerator` pobiera opis osobowości użytkownika (jeśli istnieje), łączy go z detalami porady i generuje dokładnie 10 zdań w tonie troskliwym.
+    - `AdviceRecommendation` zawiera zarówno domenowy obiekt porady, jak i wygenerowaną wiadomość.
 
 4. **Response serialization**
    - `AdviceResponsePayload` (Pydantic) exposes the advice details and chat response.
@@ -53,6 +54,10 @@
 ### Category Repository (`SupabaseAdviceCategoryRepository`)
 - Returns the list of category names (`advice_categories.name`) ordered alphabetically.
 - Simple membership checks reuse the cached list instead of additional queries.
+
+### User Persona Provider
+- `SupabaseUserPersonaRepository` odczytuje tekstowy opis osobowości (`persona_text`) dla `user_id` (domyślna tabela `user_personas`), zwracając `None`, jeśli wpis nie istnieje.
+- `NullUserPersonaProvider` to bezpieczny fallback, jeżeli dane nie są dostępne.
 
 ## Classifiers & Scoring Rules
 ### Category Matches
@@ -77,11 +82,17 @@
   - `OPENAI_EMBEDDINGS_MODEL` – model domyślny.
   - `OPENAI_CATEGORY_MODEL` – (opcjonalnie) osobny model embeddings dla klasyfikacji kategorii.
   - `OPENAI_INTENT_MODEL` – (opcjonalnie) osobny model embeddings dla rozpoznawania intencji.
-- **Supabase settings**: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`.
+- **OpenAI settings**:
+  - `OPENAI_API_KEY` (plus opcjonalnie `OPENAI_ORGANIZATION`, `OPENAI_PROJECT`).
+  - `OPENAI_EMBEDDINGS_MODEL` – model bazowy na potrzeby embeddingów.
+  - `OPENAI_CATEGORY_MODEL` – (opcjonalnie) model embeddingów dla kategorii.
+  - `OPENAI_INTENT_MODEL` – (opcjonalnie) model embeddingów dla intencji.
+  - `OPENAI_RESPONSE_MODEL` – model LLM do generowania odpowiedzi (domyślnie `gpt-5-mini`).
+- **Supabase settings**: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, opcjonalnie `SUPABASE_USER_PERSONA_TABLE`.
 
 ## Extensibility Notes
 - Intent detection opiera się na `_OPENAI_INTENT_DEFINITIONS`; wystarczy zmienić listę opisów lub próg w `build_openai_intent_detector`.
-- Response generation currently echoes placeholders – replace with an LLM-backed generator for production.
+- Response generation opiera się na `LLMAdviceResponseGenerator`; można podmienić prompt, model lub całą implementację.
 - Category frequencies cache is computed on first use; invalidate manually if the catalogue changes frequently (e.g., inject a repository signal).
 - Weighted selection can be tuned by adjusting rarity multipliers, jitter amplitude, or specificity formula.
 
@@ -90,6 +101,7 @@
   - `advices` with category links
   - `advice_categories` containing human-readable `name`
   - `advice_category_links` mapping advices ↔ categories
+- (Opcjonalnie) `user_personas` z kolumnami `user_id`, `persona_text`, `updated_at`.
 - Populate `OPENAI_CATEGORY_DEFINITIONS` in `advice_service.py` to stay in sync with Supabase categories.
 - Use `uvicorn app.main:app --reload --env-file .env` for local runs; `.env` should contain Supabase and OpenAI credentials.
 
