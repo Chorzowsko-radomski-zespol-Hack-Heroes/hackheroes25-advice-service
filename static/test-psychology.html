@@ -56,6 +56,22 @@
             margin: 0.5rem 0;
         }
 
+        .user-id-section {
+            background: white;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-id-section input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+        }
+
         textarea {
             width: 100%;
             min-height: 80px;
@@ -235,6 +251,12 @@
 <body>
     <h1>Test Psychologiczny</h1>
     <form id="psychology-form">
+        <div class="user-id-section">
+            <label for="user_id"><strong>Twój ID użytkownika:</strong></label>
+            <input type="text" id="user_id" name="user_id" placeholder="Wpisz swoje ID użytkownika" required>
+            <small>ID możesz uzyskać z systemu autoryzacji lub użyć testowego ID</small>
+        </div>
+
         <div class="scale-info">
             <strong>Skala odpowiedzi:</strong> 1=Nigdy, 2=Raczej nie, 3=Nie, 4=Średnio, 5=Raczej tak, 6=Tak, 7=Zawsze
         </div>
@@ -523,8 +545,18 @@
                 openAnswers.push(value);
             }
 
+            // Pobierz user_id z pola
+            const userIdInput = document.getElementById('user_id');
+            const userId = userIdInput.value.trim();
+            if (!userId) {
+                alert('Wpisz swoje ID użytkownika!');
+                submitButton.disabled = false;
+                submitButton.textContent = "Wyślij Test";
+                return;
+            }
+
             const payload = {
-                user_id: "demo-test-user",
+                user_id: userId,
                 closed_answers: closedAnswers,
                 open_answers: openAnswers
             };

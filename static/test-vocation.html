@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Test Zawodowy - HackHeroes25</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 2rem;
+            background: #f6f7fb;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .question {
+            background: white;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .question h3 {
+            margin: 0 0 0.5rem 0;
+            color: #374151;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 0.5rem 0;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .radio-option input {
+            margin: 0;
+        }
+
+        .labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .open-question {
+            background: white;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-id-section {
+            background: white;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-id-section input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            font-family: inherit;
+        }
+
+        .open-question textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        button {
+            background: #3b82f6;
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: block;
+            margin: 2rem auto 0;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        #result {
+            margin-top: 2rem;
+        }
+
+        .trait-scores {
+            background: white;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .trait-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .trait-name {
+            width: 200px;
+            font-weight: 500;
+        }
+
+        .trait-value {
+            width: 50px;
+            text-align: right;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .bar-container {
+            flex: 1;
+            height: 20px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            margin: 0 1rem;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+            border-radius: 10px;
+        }
+
+        .persona-text {
+            background: white;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            line-height: 1.6;
+        }
+
+        .scoring-details {
+            background: white;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .scoring-details h4 {
+            margin: 0 0 1rem 0;
+            color: #374151;
+        }
+
+        .question-detail {
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .question-detail:last-child {
+            border-bottom: none;
+        }
+
+        .impact-list {
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .impact-item {
+            margin: 0.25rem 0;
+        }
+
+        .open-analysis {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: #f8fafc;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .logs {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Test Zawodowy - HackHeroes25</h1>
+    <p>Odpowiedz na wszystkie pytania używając skali od 1 do 7. Następnie przejdź do pytań otwartych.</p>
+
+    <form id="vocation-form">
+        <!-- Pytania zamknięte -->
+        <div class="question">
+            <h3>1. Dobrze odnajduję się w pracy grupowej</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q1" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q1" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q1" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q1" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q1" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q1" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q1" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>2. Efektywniej pracuję, jeśli jestem sam</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q2" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q2" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q2" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q2" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q2" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q2" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q2" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>3. Lubię wykonywać drobne naprawy w domu, albo inną pracę manualną</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q3" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q3" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q3" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q3" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q3" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q3" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q3" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>4. Lubię/lubiłem pisać rozprawki w szkole, albo prace naukowe na studiach</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q4" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q4" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q4" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q4" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q4" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q4" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q4" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>5. Jestem zaawansowany w ogólnej obsłudze komputera (skróty klawiszowe, pakiety biurowe i inne programy)</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q5" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q5" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q5" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q5" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q5" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q5" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q5" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>6. Mam wyczucie estetyki</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q6" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q6" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q6" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q6" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q6" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q6" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q6" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>7. Lubię wyrażać swoją opinię na dany temat</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q7" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q7" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q7" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q7" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q7" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q7" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q7" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>8. Regularnie obcuję ze sztuką (teatr, opera, wystawy i inne)</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q8" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q8" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q8" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q8" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q8" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q8" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q8" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>9. Umiem myśleć algorytmicznie</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q9" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q9" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q9" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q9" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q9" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q9" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q9" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>10. Lubię rozwiązywać złożone problemy</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q10" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q10" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q10" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q10" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q10" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q10" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q10" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>11. Chcę tworzyć coś, z czego będą korzystać inni ludzie</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q11" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q11" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q11" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q11" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q11" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q11" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q11" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>12. Szybko uczę się języków obcych</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q12" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q12" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q12" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q12" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q12" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q12" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q12" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>13. Jestem sprawny fizycznie</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q13" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q13" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q13" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q13" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q13" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q13" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q13" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>14. Cenię sobie kontakt z naturą</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q14" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q14" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q14" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q14" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q14" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q14" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q14" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>15. Poszukuję pracy która zapewni mi stabilność finansową i bezpieczeństwo</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q15" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q15" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q15" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q15" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q15" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q15" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q15" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>16. Wolę pracować zdalnie, z dowolnego miejsca na świecie</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q16" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q16" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q16" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q16" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q16" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q16" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q16" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>17. Jestem kiepski w wystąpieniach publicznych i unikam ich jak ognia</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q17" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q17" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q17" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q17" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q17" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q17" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q17" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>18. Bardzo cenię sobie aspekt finansowy pracy</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q18" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q18" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q18" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q18" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q18" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q18" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q18" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>19. Chcę by praca rozwijała mnie jako człowieka, nawet kosztem mniejszych zarobków lub mniejszej stabilności</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q19" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q19" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q19" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q19" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q19" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q19" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q19" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>20. Dobrze wyciągam wnioski na podstawie danych</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q20" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q20" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q20" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q20" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q20" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q20" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q20" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>21. Interesuję się anatomią człowieka i pracą lekarzy</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q21" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q21" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q21" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q21" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q21" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q21" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q21" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>22. Mam dobrą pamięć do pojęć</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q22" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q22" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q22" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q22" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q22" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q22" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q22" value="7"> 7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>23. Lubię brać udział w zorganizowanych projektach grupowych, w szkole, na uczelni lub w pracy</h3>
+            <div class="labels">
+                <span>Zawsze nie</span>
+                <span>Zawsze tak</span>
+            </div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="q23" value="1"> 1</label>
+                <label class="radio-option"><input type="radio" name="q23" value="2"> 2</label>
+                <label class="radio-option"><input type="radio" name="q23" value="3"> 3</label>
+                <label class="radio-option"><input type="radio" name="q23" value="4"> 4</label>
+                <label class="radio-option"><input type="radio" name="q23" value="5"> 5</label>
+                <label class="radio-option"><input type="radio" name="q23" value="6"> 6</label>
+                <label class="radio-option"><input type="radio" name="q23" value="7"> 7</label>
+            </div>
+        </div>
+
+        <!-- Pytania otwarte -->
+        <div class="open-question">
+            <h3>24. Opisz sytuację z pracy, która dała Ci największą satysfakcję i dlaczego?</h3>
+            <textarea name="open1" placeholder="Opisz konkretną sytuację zawodową..."></textarea>
+        </div>
+
+        <div class="open-question">
+            <h3>25. Jakie umiejętności lub wiedzę chciałbyś/chciałabyś najbardziej rozwijać w swojej karierze?</h3>
+            <textarea name="open2" placeholder="Wymień konkretne umiejętności, technologie, dziedziny..."></textarea>
+        </div>
+
+        <div class="open-question">
+            <h3>26. Czego najbardziej unikasz lub czego się obawiasz w kontekście pracy zawodowej?</h3>
+            <textarea name="open3" placeholder="Opisz sytuacje, warunki pracy, które Cię stresują..."></textarea>
+        </div>
+
+        <div class="open-question">
+            <h3>27. Jak praca wpływa na Twoje życie prywatne - czego oczekujesz od tego balansu?</h3>
+            <textarea name="open4" placeholder="Opisz idealny balans praca-życie, elastyczność, priorytety..."></textarea>
+        </div>
+
+        <button type="submit" id="submit-btn">Wyślij Test Zawodowy</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('vocation-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Wysyłanie...';
+
+            // Zbierz odpowiedzi zamknięte
+            const closedAnswers = [];
+            for (let i = 1; i <= 23; i++) {
+                const radio = document.querySelector(`input[name="q${i}"]:checked`);
+                if (!radio) {
+                    alert(`Odpowiedz na pytanie ${i}`);
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Wyślij Test Zawodowy';
+                    return;
+                }
+                closedAnswers.push(parseInt(radio.value));
+            }
+
+            // Zbierz odpowiedzi otwarte
+            const openAnswers = [];
+            const openFields = ['open1', 'open2', 'open3', 'open4'];
+            for (const field of openFields) {
+                const textarea = document.querySelector(`textarea[name="${field}"]`);
+                const value = textarea.value.trim();
+                if (!value) {
+                    alert(`Wypełnij wszystkie pytania otwarte`);
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Wyślij Test Zawodowy';
+                    return;
+                }
+                openAnswers.push(value);
+            }
+
+            // Pobierz user_id z pola
+            const userIdInput = document.getElementById('user_id');
+            const userId = userIdInput.value.trim();
+            if (!userId) {
+                alert('Wpisz swoje ID użytkownika!');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Wyślij Test Zawodowy';
+                return;
+            }
+
+            const payload = {
+                user_id: userId,
+                closed_answers: closedAnswers,
+                open_answers: openAnswers
+            };
+
+            try {
+                const response = await fetch('/tests/vocation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Błąd podczas wysyłania');
+                }
+
+                displayResults(data);
+            } catch (error) {
+                alert('Błąd: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Wyślij Test Zawodowy';
+            }
+        });
+
+        function displayResults(data) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '';
+
+            // Komunikat
+            resultDiv.innerHTML += `<div class="scoring-details"><h3>${data.message}</h3></div>`;
+
+            // Cechy zawodowe
+            if (data.trait_scores) {
+                resultDiv.innerHTML += '<div class="trait-scores"><h3>Cechy Zawodowe</h3>';
+                Object.entries(data.trait_scores).forEach(([trait, value]) => {
+                    const percentage = Math.round(value * 100);
+                    resultDiv.innerHTML += `
+                        <div class="trait-bar">
+                            <div class="trait-name">${trait.replace(/_/g, ' ')}</div>
+                            <div class="trait-value">${percentage}%</div>
+                            <div class="bar-container">
+                                <div class="bar-fill" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+                resultDiv.innerHTML += '</div>';
+            }
+
+            // Osobowość
+            if (data.persona_text) {
+                resultDiv.innerHTML += `
+                    <div class="persona-text">
+                        <h3>Opis Osobowości Zawodowej</h3>
+                        <p>${data.persona_text.replace(/\n/g, '<br>')}</p>
+                    </div>
+                `;
+            }
+
+            // Szczegóły scoringu
+            if (data.question_details && data.question_details.length > 0) {
+                resultDiv.innerHTML += '<div class="scoring-details"><h4>Szczegóły Punktacji Pytań</h4>';
+                data.question_details.forEach((detail, index) => {
+                    resultDiv.innerHTML += `
+                        <div class="question-detail">
+                            <strong>Pytanie ${index + 1}:</strong> Odpowiedź ${detail.answer} wpływa na:
+                            <div class="impact-list">
+                                ${detail.impacts.map(impact =>
+                                    `<div class="impact-item">• ${impact.trait.replace(/_/g, ' ')}: ${impact.effect > 0 ? '+' : ''}${impact.effect}</div>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    `;
+                });
+                resultDiv.innerHTML += '</div>';
+            }
+
+            // Analiza odpowiedzi otwartych
+            if (data.open_answers_details && data.open_answers_details.length > 0) {
+                resultDiv.innerHTML += '<div class="scoring-details"><h4>Analiza Odpowiedzi Otwartych</h4>';
+                data.open_answers_details.forEach((detail, index) => {
+                    resultDiv.innerHTML += `
+                        <div class="question-detail">
+                            <strong>Pytanie otwarte ${index + 1}:</strong> "${detail.answer_text.substring(0, 100)}${detail.answer_text.length > 100 ? '...' : ''}"
+                            <div class="open-analysis">
+                                Wykryte cechy: ${detail.trait_matches.join(', ') || 'brak'}
+                            </div>
+                        </div>
+                    `;
+                });
+                resultDiv.innerHTML += '</div>';
+            }
+
+            // Logi systemu
+            if (data.scoring_logs && data.scoring_logs.length > 0) {
+                resultDiv.innerHTML += `
+                    <div class="scoring-details">
+                        <h4>Logi Systemu</h4>
+                        <div class="logs">${data.scoring_logs.join('\n')}</div>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+
+</html>

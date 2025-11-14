@@ -50,23 +50,52 @@ PSYCHO_QUESTION_IMPACTS: Sequence[Sequence[TraitImpact]] = (
 )
 
 VOCATION_QUESTION_IMPACTS: Sequence[Sequence[TraitImpact]] = (
-    (TraitImpact("majstrowanie", 1.0),),
-    (TraitImpact("kontakt_z_natura", 1.0),),
-    (TraitImpact("obsluga_komputera", 1.0),),
-    (TraitImpact("zarzadzanie_projektem", 1.0),),
-    (TraitImpact("programowanie", 1.0),),
-    (TraitImpact("biologia_medycyna", 1.0),),
-    (TraitImpact("sztuka_design", 1.0),),
-    (TraitImpact("analiza_danych", 1.0),),
-    (TraitImpact("jezyki_obce", 1.0),),
-    (TraitImpact("praca_terenowa", 1.0),),
-    (TraitImpact("praca_zdalna", 1.0),),
-    (TraitImpact("wystapienia_publiczne", 1.0),),
-    (TraitImpact("pisanie", 1.0),),
-    (TraitImpact("priorytet_pieniadze", 1.0),),
-    (TraitImpact("priorytet_rozwoj", 1.0),),
-    (TraitImpact("priorytet_stabilnosc", 1.0),),
+    # 1. Dobrze odnajduję się w pracy grupowej
     (TraitImpact("praca_z_ludzmi", 1.0),),
+    # 2. Efektywniej pracuję, jeśli jestem sam
+    (TraitImpact("praca_z_ludzmi", 1.0, reverse=True),),
+    # 3. Lubię wykonywać drobne naprawy w domu, albo inną pracę manualną
+    (TraitImpact("majstrowanie", 1.0),),
+    # 4. Lubię/lubiałem pisać rozprawki w szkole, albo prace naukowe na studiach
+    (TraitImpact("pisanie", 1.0),),
+    # 5. Jestem zaawansowany w ogólnej obsłudze komputera
+    (TraitImpact("obsluga_komputera", 1.0),),
+    # 6. Mam wyczucie estetyki
+    (TraitImpact("sztuka_design", 1.0),),
+    # 7. Lubię wyrażać swoją opinię na dany temat
+    (TraitImpact("pisanie", 1.0),),
+    # 8. Regularnie obcuję ze sztuką (teatr, opera, wystawy i inne)
+    (TraitImpact("sztuka_design", 1.0),),
+    # 9. Umiem myśleć algorytmicznie
+    (TraitImpact("programowanie", 1.0),),
+    # 10. Lubię rozwiązywać złożone problemy
+    (TraitImpact("programowanie", 1.0), TraitImpact("analiza_danych", 0.7),),
+    # 11. Chcę tworzyć coś, z czego będą korzystać inni ludzie
+    (TraitImpact("programowanie", 0.8), TraitImpact("zarzadzanie_projektem", 0.6),),
+    # 12. Szybko uczę się języków obcych
+    (TraitImpact("jezyki_obce", 1.0),),
+    # 13. Jestem sprawny fizycznie
+    (TraitImpact("praca_terenowa", 1.0),),
+    # 14. Cenię sobie kontakt z naturą
+    (TraitImpact("kontakt_z_natura", 1.0),),
+    # 15. Poszukuję pracy która zapewni mi stabilność finansową i bezpieczeństwo
+    (TraitImpact("priorytet_stabilnosc", 1.0),),
+    # 16. Wolę pracować zdalnie, z dowolnego miejsca na świecie
+    (TraitImpact("praca_zdalna", 1.0),),
+    # 17. Jestem kiepski w wystąpieniach publicznych i unikam ich jak ognia
+    (TraitImpact("wystapienia_publiczne", 1.0, reverse=True),),
+    # 18. Bardzo cenię sobie aspekt finansowy pracy
+    (TraitImpact("priorytet_pieniadze", 1.0),),
+    # 19. Chcę by praca rozwijała mnie jako człowieka, nawet kosztem mniejszych zarobków lub mniejszej stabilności
+    (TraitImpact("priorytet_rozwoj", 1.0),),
+    # 20. Dobrze wyciągam wnioski na podstawie danych
+    (TraitImpact("analiza_danych", 1.0),),
+    # 21. Interesuję się anatomią człowieka i pracą lekarzy
+    (TraitImpact("biologia_medycyna", 1.0),),
+    # 22. Mam dobrą pamięć do pojęć
+    (TraitImpact("biologia_medycyna", 0.8), TraitImpact("analiza_danych", 0.6),),
+    # 23. Lubię brać udział w zorganizowanych projektach grupowych, w szkole, na uczelni lub w pracy
+    (TraitImpact("praca_z_ludzmi", 1.0), TraitImpact("zarzadzanie_projektem", 0.7),),
 )
 
 
@@ -162,7 +191,12 @@ class OpenAnswerTraitClassifier:
                 score = _cosine_similarity(
                     answer_embedding.embedding, trait_embedding)
                 if score >= self._threshold:
-                    contributions[trait] += score * self._max_boost
+                    # Skalowalny boost - im bardziej ponad threshold, tym większy wkład
+                    excess = score - self._threshold
+                    boost_factor = 1.0 + \
+                        (excess / (1.0 - self._threshold)) * 3.0  # Do 4x więcej
+                    contributions[trait] += score * \
+                        self._max_boost * boost_factor
         return contributions
 
     async def score_open_answers_detailed(
@@ -193,7 +227,13 @@ class OpenAnswerTraitClassifier:
             for trait, trait_embedding in self._trait_embeddings:
                 score = _cosine_similarity(
                     answer_embedding.embedding, trait_embedding)
-                contribution = score * self._max_boost if score >= self._threshold else 0
+                if score >= self._threshold:
+                    excess = score - self._threshold
+                    boost_factor = 1.0 + \
+                        (excess / (1.0 - self._threshold)) * 3.0
+                    contribution = score * self._max_boost * boost_factor
+                else:
+                    contribution = 0
 
                 answer_detail["trait_matches"].append({
                     "trait": trait,

@@ -1,0 +1,55 @@
+# Pytania dla testu zawodowego:
+
+## Zamknięte
+1. Dobrze odnajduję się w pracy grupowej (Praca z ludźmi)
+2. Efektywniej pracuję, jeśli jestem sam (Praca z ludźmi)
+3. Lubię wykonywać drobne naprawy w domu, albo inną pracę manualną (Majstrowanie)
+4. Lubię/lubiałem pisać rozprawki w szkole, albo prace naukowe na studiach. (Pisanie)
+5. Jestem zaawansowany w ogólnej obsłudze komputera (skróty klawiszowe, pakiety biurowe i inne programy) (Obsługa komputera)
+6. Mam wyczucie estetyki (Sztuka/design)
+7. Lubię wyrażać swoją opinię na dany temat (Pisanie)
+8. Regularnie obcuję ze sztuką (teatr, opera, wystawy i inne) (Sztuka/design)
+9. Umiem myśleć algorytmicznie (Programowanie)
+10. Lubię rozwiązywać złożone problemy (Programowanie, Analiza Danych)
+11. Chcę tworzyć coś, z czego będą korzystać inni ludzie (trochę Programowanie)
+12. Szybko uczę się języków obcych
+13. Jestem sprawny fizycznie
+14. Cenię sobie kontakt z naturą
+15. Poszukuję pracy która zapewni mi stabilność finansową i bezpieczeństwo
+16. Wolę pracować zdalnie, z dowolnego miejsca na świecie
+17. Jestem kiepski w wystąpieniach publicznych i unikam ich jak ognia
+18. Bardzo cenię sobie aspekt finansowy pracy
+19. Chcę by praca rozwijała mnie jako człowieka, nawet kosztem mniejszych zarobków lub mniejszej stabilności
+20. Dobrze wyciągam wnioski na podstawie danych
+21. Interesuję się anatomią człowieka i pracą lekarzy (Biologia/medycyna)
+22. Mam dobrą pamięć do pojęć (Biologia/medycyna)
+23. Lubię brać udział w zorganizowanych projektach grupowych, w szkole, na uczelni lub w pracy
+
+## Otwarte
+24. Opisz sytuację z pracy, która dała Ci największą satysfakcję i dlaczego?
+25. Jakie umiejętności lub wiedzę chciałbyś/chciałabyś najbardziej rozwijać w swojej karierze?
+26. Czego najbardziej unikasz lub czego się obawiasz w kontekście pracy zawodowej?
+27. Jak praca wpływa na Twoje życie prywatne - czego oczekujesz od tego balansu?
+
+## Cechy
+
+// Majstrowanie
+// Kontakt z naturą
+// Obsługa komputera
+// Zarządzanie projektem
+// Programowanie
+// Biologia/medycyna
+// Sztuka/design
+// Analiza danych
+// Języki obce
+// Sprawność fizyczna/praca terenowa
+// Chęć pracy zdalnej
+// Występowanie publiczne
+// Pisanie
+// Priorytet: pieniądze
+// Priorytet: rozwój
+// Priorytet: stabilność
+// Praca z ludźmi (jeśli 0, to praca solo)
+
+
+Całość ma działać niemal tak samo, jak test psychologiczny.

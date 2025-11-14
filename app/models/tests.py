@@ -85,7 +85,7 @@ class PsychologyTestRequest(BaseModel):
 class VocationalTestRequest(BaseModel):
     user_id: str
     closed_answers: list[int] = Field(
-        ..., description="Likert answers for 17 vocational statements (1-7)."
+        ..., description="Likert answers for 23 vocational statements (1-7)."
     )
     open_answers: list[str] = Field(
         ..., description="Four open answers for vocational context."
@@ -94,8 +94,8 @@ class VocationalTestRequest(BaseModel):
     @field_validator("closed_answers")
     @classmethod
     def validate_voc_closed_answers(cls, value: list[int]) -> list[int]:
-        if len(value) != 17:
-            raise ValueError("Expected 17 closed answers for vocational test.")
+        if len(value) != 23:
+            raise ValueError("Expected 23 closed answers for vocational test.")
         for v in value:
             if not 1 <= v <= 7:
                 raise ValueError("Closed answers must be between 1 and 7.")
