@@ -69,6 +69,9 @@ class AdviceResponseGenerator(Protocol):
     ) -> str:
         raise NotImplementedError
 
+    def set_log_sink(self, sink: Callable[[str], None]) -> None:
+        ...
+
 
 class AdviceNotFoundError(RuntimeError):
     pass
@@ -104,13 +107,21 @@ class AdviceSelectionPipeline:
         self._latest_events: list[str] = []
         if hasattr(self._response_generator, "set_log_sink"):
             try:
-                self._response_generator.set_log_sink(self._record)  # type: ignore[attr-defined]
+                self._response_generator.set_log_sink(
+                    self._record)  # type: ignore[attr-defined]
             except TypeError:
                 pass
 
     async def recommend(self, request: AdviceRequestContext) -> AdviceRecommendation:
         self._latest_events = []
         category_matches = await self._infer_categories(request.user_message)
+        if not category_matches:
+            self._record(
+                "Nie można wygenerować porady bez choć jednej rozpoznanej kategorii."
+            )
+            raise AdviceNotFoundError(
+                "Brak dopasowanych kategorii do wypowiedzi użytkownika."
+            )
         intent_match = await self._intent_detector.detect_preferred_kind(
             request.user_message
         )
@@ -589,11 +600,14 @@ class LLMAdviceResponseGenerator(AdviceResponseGenerator):
                 "openai package not installed. Install it with `pip install openai`."
             )
         self._persona_provider = persona_provider
-        runtime_client: OpenAIClient = client or create_async_openai_client(get_openai_settings())
+        runtime_client: OpenAIClient = client or create_async_openai_client(
+            get_openai_settings())
         if not isinstance(runtime_client, _RuntimeAsyncOpenAI):
-            raise TypeError("client must be an instance of openai.AsyncOpenAI.")
+            raise TypeError(
+                "client must be an instance of openai.AsyncOpenAI.")
         self._client = runtime_client
-        self._model = model or os.getenv("OPENAI_RESPONSE_MODEL") or "gpt-5-mini"
+        self._model = model or os.getenv(
+            "OPENAI_RESPONSE_MODEL") or "gpt-5-mini"
         self._log_sink: Callable[[str], None] | None = None
 
     def set_log_sink(self, sink: Callable[[str], None]) -> None:
@@ -626,11 +640,13 @@ class LLMAdviceResponseGenerator(AdviceResponseGenerator):
                     "Brak zapisanego opisu osobowości dla użytkownika – użyję neutralnego tonu."
                 )
         else:
-            self._log("Brak identyfikatora użytkownika – persona nie będzie wykorzystana.")
+            self._log(
+                "Brak identyfikatora użytkownika – persona nie będzie wykorzystana.")
 
         advice_description = advice.description or "Brak dodatkowego opisu."
         categories_text = (
-            ", ".join(categories) if categories else "brak kategorii dopasowanych wprost"
+            ", ".join(
+                categories) if categories else "brak kategorii dopasowanych wprost"
         )
 
         persona_prompt = (
@@ -644,6 +660,8 @@ class LLMAdviceResponseGenerator(AdviceResponseGenerator):
             "Craft responses that are empathetic, supportive, and action oriented. "
             "Always produce exactly ten sentences. "
             "Do not include hyperlinks or bullet lists."
+            "Do not mention the exact advice's name"
+            "Do not mention anything about \"users personality\" itself, like meta"
         )
 
         user_prompt = (
@@ -671,6 +689,7 @@ class LLMAdviceResponseGenerator(AdviceResponseGenerator):
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
+                reasoning={"effort": "low"},
             )
             completion_text = getattr(response, "output_text", None)
             if not completion_text and getattr(response, "output", None):
@@ -683,7 +702,8 @@ class LLMAdviceResponseGenerator(AdviceResponseGenerator):
                 completion_text = "\n".join(parts)
             if completion_text:
                 completion_text = completion_text.strip()
-                sentences = [s for s in re.split(r"(?<=[.!?])\s+", completion_text) if s]
+                sentences = [s for s in re.split(
+                    r"(?<=[.!?])\s+", completion_text) if s]
                 if len(sentences) == 10:
                     self._log("Odpowiedź LLM wygenerowana pomyślnie.")
                     return completion_text
@@ -728,6 +748,42 @@ class LLMAdviceResponseGenerator(AdviceResponseGenerator):
         return " ".join(sentences)
 
 
+class MockAdviceResponseGenerator(AdviceResponseGenerator):
+    """
+    Extremely fast response generator for demo/testing purposes.
+    Produces a deterministic ten-sentence reply without external calls.
+    """
+
+    def set_log_sink(self, sink: Callable[[str], None]) -> None:
+        pass
+
+    async def generate_response(
+        self,
+        advice: Advice,
+        request: AdviceRequestContext,
+        categories: Sequence[str],
+        preferred_kind: AdviceKind | None,
+    ) -> str:
+        description = advice.description or "Ta propozycja ma potencjał wprowadzić pozytywną zmianę."
+        categories_text = ", ".join(
+            categories) if categories else "ogólne wskazówki"
+        kind_text = advice.kind.value.replace("_", " ")
+        preferred_text = preferred_kind.value if preferred_kind else "brak konkretnej prośby"
+        sentences = [
+            "Dziękuję za zaufanie i chęć rozmowy.",
+            f"Wybrałam poradę '{advice.name}', ponieważ może odpowiadać na Twoje aktualne potrzeby.",
+            f"To {kind_text}, które koncentruje się na następującym kierunku działania.",
+            f"Opis porady brzmi: {description}",
+            f"Kluczowe kategorie, które zadecydowały o wyborze, to: {categories_text}.",
+            "Wdrażaj tę propozycję powoli, obserwując swoje emocje i reakcje ciała.",
+            "Pozwól sobie na refleksję, które elementy porad najbardziej z Tobą rezonują.",
+            f"Pamiętaj, że Twoja pierwotna prośba została odczytana jako: {preferred_text}.",
+            "Nawet niewielki krok w stronę zmiany potrafi uruchomić pozytywną spiralę.",
+            "Jestem przy Tobie, by dać Ci wsparcie, siłę i poczucie sprawczości.",
+        ]
+        return " ".join(sentences)
+
+
 class StaticAdviceCategoryClassifier(AdviceCategoryClassifier):
     def __init__(self, fallback_category: str = "general") -> None:
         self._fallback_category = fallback_category
@@ -758,7 +814,7 @@ class OpenAIEmbeddingCategoryClassifier(AdviceCategoryClassifier):
         settings: OpenAISettings | None = None,
         client: OpenAIClient | None = None,
         model: str | None = None,
-        similarity_threshold: float = 0.25,
+        similarity_threshold: float = 0.33,
         max_categories: int | None = 6,
     ) -> None:
         if _RuntimeAsyncOpenAI is None:

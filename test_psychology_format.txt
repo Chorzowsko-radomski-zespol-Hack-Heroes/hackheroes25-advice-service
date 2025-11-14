@@ -1,0 +1,21 @@
+// 1. Pasuje mi bycie w centrum zainteresowania (Ekstrawersja) - TAK
+// 2. Łatwo dogaduje się z nowymi osobami (Ekstrawersja) - RACZEJ TAK
+// 3. Muszę zaplanować pracę przed jej rozpoczęciem (sumienność) - ZAWSZE
+// 4. Mam problem z dotrzymywaniem terminów (sumienność) - RACZEJ NIE
+// 5. W sporze ważniejsze są uczucia, niż dotarcie do prawdy (ugodowość) - ŚREDNIO
+// 6. Jestem bezkompromisowy i walczę o swoje (ugodowość) - RACZEJ NIE
+// 7. Miewam częste wahania nastroju (stabilność emocjonalna) - RACZEJ TAK
+// 8. Dobrze radzę sobie z emocjami (stabilność emocjonalna) - TAK
+// 9. Nie mam problemu z uzależnieniami (koncentracja/stabilność) - ŚREDNIO
+// 10. Lubię nieszablonowe rozwiązania (Kreatywność) - ZAWSZE
+// 11. Mam predyspozycje do bycia artystą (Kreatywność) - RACZEJ TAK
+// 12. Swoje działania kieruję rozumem i logicznym myśleniem (Myślenie logiczne) - TAK
+// 13. Jestem w stanie w coś uwierzyć, dając się emocjom (Myślenie logiczne) - RACZEJ NIE
+// 14. Trudno mi utrzymać uwagę na jednej rzeczy (Koncentracja) - ŚREDNIO
+// 15. Często zmieniam kierunek działania (Koncentracja) - RACZEJ NIE
+// 16. Grupa często widzi we mnie lidera (Przywództwo) - RACZEJ TAK
+// 17. Uważam, że byłbym dobrym dyrektorem albo przywódcą (Przywództwo) - TAK
+// 18. Czego brakuje ci do pełni szczęścia?
+// 19. Jaki byłby twój wymarzony partner życiowy?
+// 20. Jak wyglądałby Twój wymarzony dzień?
+// 21. Czego w życiu najbardziej się boisz?

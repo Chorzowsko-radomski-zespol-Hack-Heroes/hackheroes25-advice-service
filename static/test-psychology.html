@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Test Psychologiczny - HackHeroes25</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 2rem;
+            background: #f6f7fb;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .question {
+            background: white;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .question h3 {
+            margin: 0 0 0.5rem 0;
+            color: #374151;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 0.5rem 0;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .radio-option input {
+            margin: 0;
+        }
+
+        .scale-info {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin: 0.5rem 0;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+        }
+
+        button {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 6px;
+            background: #3b82f6;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            display: block;
+            margin: 2rem auto;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        #result {
+            background: #b4def7;
+            color: #131518;
+            padding: 1rem;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            margin-top: 2rem;
+        }
+
+        .traits-display {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .trait-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .trait-name {
+            font-weight: bold;
+        }
+
+        .trait-value {
+            color: #3b82f6;
+            font-weight: bold;
+        }
+
+        .persona-text {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 6px;
+            line-height: 1.6;
+        }
+
+        .question-details {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #fef3c7;
+            border-radius: 8px;
+        }
+
+        .question-detail {
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .question-detail h5 {
+            margin: 0 0 0.5rem 0;
+            color: #92400e;
+        }
+
+        .question-detail ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        .question-detail li {
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .open-scoring {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #dbeafe;
+            border-radius: 8px;
+        }
+
+        .open-scoring ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        .scoring-logs {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f3f4f6;
+            border-radius: 8px;
+        }
+
+        .scoring-logs pre {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .open-details {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #ecfdf5;
+            border-radius: 8px;
+        }
+
+        .open-answer-detail {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid #10b981;
+        }
+
+        .open-answer-detail h5 {
+            margin: 0 0 1rem 0;
+            color: #065f46;
+            font-size: 1rem;
+        }
+
+        .trait-matches {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .trait-match {
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .trait-match.above-threshold {
+            background: #dcfce7;
+            border-left: 3px solid #16a34a;
+        }
+
+        .trait-match.below-threshold {
+            background: #fef2f2;
+            border-left: 3px solid #dc2626;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Test Psychologiczny</h1>
+    <form id="psychology-form">
+        <div class="scale-info">
+            <strong>Skala odpowiedzi:</strong> 1=Nigdy, 2=Raczej nie, 3=Nie, 4=Średnio, 5=Raczej tak, 6=Tak, 7=Zawsze
+        </div>
+
+        <div class="question">
+            <h3>1. Pasuje mi bycie w centrum zainteresowania</h3>
+            <div class="radio-group" data-question="1">
+                <label class="radio-option"><input type="radio" name="q1" value="1" required>1</label>
+                <label class="radio-option"><input type="radio" name="q1" value="2">2</label>
+                <label class="radio-option"><input type="radio" name="q1" value="3">3</label>
+                <label class="radio-option"><input type="radio" name="q1" value="4">4</label>
+                <label class="radio-option"><input type="radio" name="q1" value="5">5</label>
+                <label class="radio-option"><input type="radio" name="q1" value="6">6</label>
+                <label class="radio-option"><input type="radio" name="q1" value="7">7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>2. Łatwo dogaduje się z nowymi osobami</h3>
+            <div class="radio-group" data-question="2">
+                <label class="radio-option"><input type="radio" name="q2" value="1" required>1</label>
+                <label class="radio-option"><input type="radio" name="q2" value="2">2</label>
+                <label class="radio-option"><input type="radio" name="q2" value="3">3</label>
+                <label class="radio-option"><input type="radio" name="q2" value="4">4</label>
+                <label class="radio-option"><input type="radio" name="q2" value="5">5</label>
+                <label class="radio-option"><input type="radio" name="q2" value="6">6</label>
+                <label class="radio-option"><input type="radio" name="q2" value="7">7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>3. Muszę zaplanować pracę przed jej rozpoczęciem</h3>
+            <div class="radio-group" data-question="3">
+                <label class="radio-option"><input type="radio" name="q3" value="1" required>1</label>
+                <label class="radio-option"><input type="radio" name="q3" value="2">2</label>
+                <label class="radio-option"><input type="radio" name="q3" value="3">3</label>
+                <label class="radio-option"><input type="radio" name="q3" value="4">4</label>
+                <label class="radio-option"><input type="radio" name="q3" value="5">5</label>
+                <label class="radio-option"><input type="radio" name="q3" value="6">6</label>
+                <label class="radio-option"><input type="radio" name="q3" value="7">7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>4. Mam problem z dotrzymywaniem terminów</h3>
+            <div class="radio-group" data-question="4">
+                <label class="radio-option"><input type="radio" name="q4" value="1" required>1</label>
+                <label class="radio-option"><input type="radio" name="q4" value="2">2</label>
+                <label class="radio-option"><input type="radio" name="q4" value="3">3</label>
+                <label class="radio-option"><input type="radio" name="q4" value="4">4</label>
+                <label class="radio-option"><input type="radio" name="q4" value="5">5</label>
+                <label class="radio-option"><input type="radio" name="q4" value="6">6</label>
+                <label class="radio-option"><input type="radio" name="q4" value="7">7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>5. W sporze ważniejsze są uczucia, niż dotarcie do prawdy</h3>
+            <div class="radio-group" data-question="5">
+                <label class="radio-option"><input type="radio" name="q5" value="1" required>1</label>
+                <label class="radio-option"><input type="radio" name="q5" value="2">2</label>
+                <label class="radio-option"><input type="radio" name="q5" value="3">3</label>
+                <label class="radio-option"><input type="radio" name="q5" value="4">4</label>
+                <label class="radio-option"><input type="radio" name="q5" value="5">5</label>
+                <label class="radio-option"><input type="radio" name="q5" value="6">6</label>
+                <label class="radio-option"><input type="radio" name="q5" value="7">7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>6. Jestem bezkompromisowy i walczę o swoje</h3>
+            <div class="radio-group" data-question="6">
+                <label class="radio-option"><input type="radio" name="q6" value="1" required>1</label>
+                <label class="radio-option"><input type="radio" name="q6" value="2">2</label>
+                <label class="radio-option"><input type="radio" name="q6" value="3">3</label>
+                <label class="radio-option"><input type="radio" name="q6" value="4">4</label>
+                <label class="radio-option"><input type="radio" name="q6" value="5">5</label>
+                <label class="radio-option"><input type="radio" name="q6" value="6">6</label>
+                <label class="radio-option"><input type="radio" name="q6" value="7">7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>7. Miewam częste wahania nastroju</h3>
+            <div class="radio-group" data-question="7">
+                <label class="radio-option"><input type="radio" name="q7" value="1" required>1</label>
+                <label class="radio-option"><input type="radio" name="q7" value="2">2</label>
+                <label class="radio-option"><input type="radio" name="q7" value="3">3</label>
+                <label class="radio-option"><input type="radio" name="q7" value="4">4</label>
+                <label class="radio-option"><input type="radio" name="q7" value="5">5</label>
+                <label class="radio-option"><input type="radio" name="q7" value="6">6</label>
+                <label class="radio-option"><input type="radio" name="q7" value="7">7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>8. Dobrze radzę sobie z emocjami</h3>
+            <div class="radio-group" data-question="8">
+                <label class="radio-option"><input type="radio" name="q8" value="1" required>1</label>
+                <label class="radio-option"><input type="radio" name="q8" value="2">2</label>
+                <label class="radio-option"><input type="radio" name="q8" value="3">3</label>
+                <label class="radio-option"><input type="radio" name="q8" value="4">4</label>
+                <label class="radio-option"><input type="radio" name="q8" value="5">5</label>
+                <label class="radio-option"><input type="radio" name="q8" value="6">6</label>
+                <label class="radio-option"><input type="radio" name="q8" value="7">7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>9. Nie mam problemu z uzależnieniami</h3>
+            <div class="radio-group" data-question="9">
+                <label class="radio-option"><input type="radio" name="q9" value="1" required>1</label>
+                <label class="radio-option"><input type="radio" name="q9" value="2">2</label>
+                <label class="radio-option"><input type="radio" name="q9" value="3">3</label>
+                <label class="radio-option"><input type="radio" name="q9" value="4">4</label>
+                <label class="radio-option"><input type="radio" name="q9" value="5">5</label>
+                <label class="radio-option"><input type="radio" name="q9" value="6">6</label>
+                <label class="radio-option"><input type="radio" name="q9" value="7">7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>10. Lubię nieszablonowe rozwiązania</h3>
+            <div class="radio-group" data-question="10">
+                <label class="radio-option"><input type="radio" name="q10" value="1" required>1</label>
+                <label class="radio-option"><input type="radio" name="q10" value="2">2</label>
+                <label class="radio-option"><input type="radio" name="q10" value="3">3</label>
+                <label class="radio-option"><input type="radio" name="q10" value="4">4</label>
+                <label class="radio-option"><input type="radio" name="q10" value="5">5</label>
+                <label class="radio-option"><input type="radio" name="q10" value="6">6</label>
+                <label class="radio-option"><input type="radio" name="q10" value="7">7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>11. Mam predyspozycje do bycia artystą</h3>
+            <div class="radio-group" data-question="11">
+                <label class="radio-option"><input type="radio" name="q11" value="1" required>1</label>
+                <label class="radio-option"><input type="radio" name="q11" value="2">2</label>
+                <label class="radio-option"><input type="radio" name="q11" value="3">3</label>
+                <label class="radio-option"><input type="radio" name="q11" value="4">4</label>
+                <label class="radio-option"><input type="radio" name="q11" value="5">5</label>
+                <label class="radio-option"><input type="radio" name="q11" value="6">6</label>
+                <label class="radio-option"><input type="radio" name="q11" value="7">7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>12. Swoje działania kieruję rozumem i logicznym myśleniem, bardziej niż emocjami</h3>
+            <div class="radio-group" data-question="12">
+                <label class="radio-option"><input type="radio" name="q12" value="1" required>1</label>
+                <label class="radio-option"><input type="radio" name="q12" value="2">2</label>
+                <label class="radio-option"><input type="radio" name="q12" value="3">3</label>
+                <label class="radio-option"><input type="radio" name="q12" value="4">4</label>
+                <label class="radio-option"><input type="radio" name="q12" value="5">5</label>
+                <label class="radio-option"><input type="radio" name="q12" value="6">6</label>
+                <label class="radio-option"><input type="radio" name="q12" value="7">7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>13. Jestem w stanie w coś uwierzyć, dając się swoim emocjom</h3>
+            <div class="radio-group" data-question="13">
+                <label class="radio-option"><input type="radio" name="q13" value="1" required>1</label>
+                <label class="radio-option"><input type="radio" name="q13" value="2">2</label>
+                <label class="radio-option"><input type="radio" name="q13" value="3">3</label>
+                <label class="radio-option"><input type="radio" name="q13" value="4">4</label>
+                <label class="radio-option"><input type="radio" name="q13" value="5">5</label>
+                <label class="radio-option"><input type="radio" name="q13" value="6">6</label>
+                <label class="radio-option"><input type="radio" name="q13" value="7">7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>14. Trudno mi utrzymać uwagę na jednej rzeczy</h3>
+            <div class="radio-group" data-question="14">
+                <label class="radio-option"><input type="radio" name="q14" value="1" required>1</label>
+                <label class="radio-option"><input type="radio" name="q14" value="2">2</label>
+                <label class="radio-option"><input type="radio" name="q14" value="3">3</label>
+                <label class="radio-option"><input type="radio" name="q14" value="4">4</label>
+                <label class="radio-option"><input type="radio" name="q14" value="5">5</label>
+                <label class="radio-option"><input type="radio" name="q14" value="6">6</label>
+                <label class="radio-option"><input type="radio" name="q14" value="7">7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>15. Często zmieniam kierunek działania</h3>
+            <div class="radio-group" data-question="15">
+                <label class="radio-option"><input type="radio" name="q15" value="1" required>1</label>
+                <label class="radio-option"><input type="radio" name="q15" value="2">2</label>
+                <label class="radio-option"><input type="radio" name="q15" value="3">3</label>
+                <label class="radio-option"><input type="radio" name="q15" value="4">4</label>
+                <label class="radio-option"><input type="radio" name="q15" value="5">5</label>
+                <label class="radio-option"><input type="radio" name="q15" value="6">6</label>
+                <label class="radio-option"><input type="radio" name="q15" value="7">7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>16. Grupa często widzi we mnie lidera</h3>
+            <div class="radio-group" data-question="16">
+                <label class="radio-option"><input type="radio" name="q16" value="1" required>1</label>
+                <label class="radio-option"><input type="radio" name="q16" value="2">2</label>
+                <label class="radio-option"><input type="radio" name="q16" value="3">3</label>
+                <label class="radio-option"><input type="radio" name="q16" value="4">4</label>
+                <label class="radio-option"><input type="radio" name="q16" value="5">5</label>
+                <label class="radio-option"><input type="radio" name="q16" value="6">6</label>
+                <label class="radio-option"><input type="radio" name="q16" value="7">7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>17. Uważam, że byłbym dobrym dyrektorem albo przywódcą politycznym</h3>
+            <div class="radio-group" data-question="17">
+                <label class="radio-option"><input type="radio" name="q17" value="1" required>1</label>
+                <label class="radio-option"><input type="radio" name="q17" value="2">2</label>
+                <label class="radio-option"><input type="radio" name="q17" value="3">3</label>
+                <label class="radio-option"><input type="radio" name="q17" value="4">4</label>
+                <label class="radio-option"><input type="radio" name="q17" value="5">5</label>
+                <label class="radio-option"><input type="radio" name="q17" value="6">6</label>
+                <label class="radio-option"><input type="radio" name="q17" value="7">7</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <h3>18. Czego brakuje ci do pełni szczęścia?</h3>
+            <textarea name="open1" placeholder="Wpisz swoją odpowiedź..." required></textarea>
+        </div>
+
+        <div class="question">
+            <h3>19. Jaki byłby twój wymarzony partner życiowy?</h3>
+            <textarea name="open2" placeholder="Wpisz swoją odpowiedź..." required></textarea>
+        </div>
+
+        <div class="question">
+            <h3>20. Jak wyglądałby Twój wymarzony dzień?</h3>
+            <textarea name="open3" placeholder="Wpisz swoją odpowiedź..." required></textarea>
+        </div>
+
+        <div class="question">
+            <h3>21. Czego w życiu najbardziej się boisz?</h3>
+            <textarea name="open4" placeholder="Wpisz swoją odpowiedź..." required></textarea>
+        </div>
+
+        <button type="submit">Wyślij Test</button>
+    </form>
+
+    <h2>Wyniki</h2>
+    <div id="result">Wypełnij i wyślij test, żeby zobaczyć wyniki.</div>
+
+    <script>
+        const form = document.getElementById("psychology-form");
+        const resultEl = document.getElementById("result");
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const submitButton = form.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = "Przetwarzanie...";
+
+            // Zbierz odpowiedzi zamknięte
+            const closedAnswers = [];
+            for (let i = 1; i <= 17; i++) {
+                const radio = form.querySelector(`input[name="q${i}"]:checked`);
+                if (!radio) {
+                    alert(`Odpowiedz na pytanie ${i}!`);
+                    submitButton.disabled = false;
+                    submitButton.textContent = "Wyślij Test";
+                    return;
+                }
+                closedAnswers.push(parseInt(radio.value));
+            }
+
+            // Zbierz odpowiedzi otwarte
+            const openAnswers = [];
+            for (let i = 1; i <= 4; i++) {
+                const textarea = form.querySelector(`textarea[name="open${i}"]`);
+                const value = textarea.value.trim();
+                if (!value) {
+                    alert(`Odpowiedz na pytanie otwarte ${17 + i}!`);
+                    submitButton.disabled = false;
+                    submitButton.textContent = "Wyślij Test";
+                    return;
+                }
+                openAnswers.push(value);
+            }
+
+            const payload = {
+                user_id: "demo-test-user",
+                closed_answers: closedAnswers,
+                open_answers: openAnswers
+            };
+
+            resultEl.textContent = "Wysyłanie do serwera...";
+
+            try {
+                const response = await fetch("/tests/psychology", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "Błąd serwera");
+                }
+
+                // Wyświetl szczegółowe wyniki
+                let resultHtml = `<h3>${data.message}</h3>`;
+
+                // Cechy psychologiczne
+                if (data.trait_scores) {
+                    resultHtml += '<div class="traits-display"><h4>🏆 Cechy psychologiczne (łączne wyniki):</h4>';
+                    for (const [trait, score] of Object.entries(data.trait_scores)) {
+                        const percentage = (score * 100).toFixed(1);
+                        resultHtml += `<div class="trait-item">
+                <span class="trait-name">${trait.replace('_', ' ')}</span>
+                <span class="trait-value">${percentage}%</span>
+              </div>`;
+                    }
+                    resultHtml += '</div>';
+                }
+
+                // Szczegóły scoringu pytań
+                if (data.question_details && data.question_details.length > 0) {
+                    resultHtml += '<div class="question-details"><h4>📊 Szczegóły scoringu pytań zamkniętych:</h4>';
+                    data.question_details.forEach(q => {
+                        resultHtml += `<div class="question-detail">
+                <h5>Pytanie ${q.question_number} (odpowiedź: ${q.answer}/7)</h5>
+                <ul>`;
+                        q.impacts.forEach(impact => {
+                            const reverseNote = impact.reverse ? ' (odwrócona skala)' : '';
+                            resultHtml += `<li><strong>${impact.trait}:</strong> odpowiedź ${q.answer} → znormalizowane ${impact.normalized_answer.toFixed(3)} × waga ${impact.weight} = ${impact.contribution.toFixed(3)} ${reverseNote}</li>`;
+                        });
+                        resultHtml += '</ul></div>';
+                    });
+                    resultHtml += '</div>';
+                }
+
+                // Scoring otwartych odpowiedzi
+                if (data.open_answers_scoring && Object.keys(data.open_answers_scoring).length > 0) {
+                    resultHtml += '<div class="open-scoring"><h4>💬 Scoring odpowiedzi otwartych:</h4><ul>';
+                    for (const [trait, score] of Object.entries(data.open_answers_scoring)) {
+                        resultHtml += `<li><strong>${trait}:</strong> ${score.toFixed(3)}</li>`;
+                    }
+                    resultHtml += '</ul></div>';
+                }
+
+                // Szczegóły scoringu pytań otwartych
+                if (data.open_answers_details && data.open_answers_details.length > 0) {
+                    resultHtml += '<div class="open-details"><h4>📝 Szczegóły analizy pytań otwartych:</h4>';
+                    data.open_answers_details.forEach(answer => {
+                        resultHtml += `<div class="open-answer-detail">
+                            <h5>Odpowiedź ${answer.answer_number}: "${answer.answer_text}"</h5>
+                            <div class="trait-matches">`;
+                        answer.trait_matches.forEach(match => {
+                            const thresholdIcon = match.above_threshold ? '✅' : '❌';
+                            const thresholdNote = match.above_threshold ? '' : ' (poniżej progu)';
+                            resultHtml += `<div class="trait-match ${match.above_threshold ? 'above-threshold' : 'below-threshold'}">
+                                <strong>${match.trait}:</strong> ${thresholdIcon} podobieństwo: ${match.cosine_similarity.toFixed(3)}, wkład: ${match.contribution.toFixed(3)}${thresholdNote}
+                            </div>`;
+                        });
+                        resultHtml += '</div></div>';
+                    });
+                    resultHtml += '</div>';
+                }
+
+                // Logi systemu
+                if (data.scoring_logs && data.scoring_logs.length > 0) {
+                    resultHtml += '<div class="scoring-logs"><h4>🔍 Logi systemu scoring:</h4><pre>';
+                    data.scoring_logs.forEach(log => {
+                        resultHtml += log + '\n';
+                    });
+                    resultHtml += '</pre></div>';
+                }
+
+                // Opis osobowości
+                if (data.persona_text) {
+                    resultHtml += '<div class="persona-text"><h4>🧠 Opis osobowości:</h4><p>' +
+                        data.persona_text.replace(/\n/g, '<br>') + '</p></div>';
+                } else if (data.persona_generated) {
+                    resultHtml += '<div class="persona-text"><h4>⚠️ Osobowość wygenerowana, ale nie pobrana</h4></div>';
+                } else {
+                    resultHtml += '<div class="persona-text"><h4>ℹ️ Osobowość jeszcze nie wygenerowana</h4><p>Wypełnij także test zawodowy, żeby system wygenerował pełny opis Twojej osobowości.</p></div>';
+                }
+
+                resultEl.innerHTML = resultHtml;
+
+            } catch (error) {
+                resultEl.innerHTML = `<div style="color: red;">Błąd: ${error.message}</div>`;
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = "Wyślij Test";
+            }
+        });
+    </script>
+</body>
+
+</html>

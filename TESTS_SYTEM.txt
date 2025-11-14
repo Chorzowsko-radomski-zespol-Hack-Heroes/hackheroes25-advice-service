@@ -1,0 +1,112 @@
+Stwórzmy moduł testu psychologicznego i testu zawodowego.
+
+- Użytkownik przesyła przez API odpowiedzi w testach.
+- Najpierw jest test psychologiczny, potem dopiero test zawodowy (trzeba zachować kolejność)
+- Odpowiedzi z testu są przesyłane do Supabase
+Bardzo ważna rzecz: w obu testach wyłaniamy CECHY. 8 cech psychologicznych i 17 cech zawodowych.
+
+# Cechy psychologiczne (po pierwszym teście)
+Ekstrawersja
+Ugodowość
+Sumienność
+Stabilność emocjonalna
+Kreatywność
+Myślenie logiczne
+Koncentracja
+Przywództwo
+
+# Cechy praktyczne (dopiero po teście do doradztwa zawodowego)
+Majstrowanie
+Kontakt z naturą
+Obsługa komputera
+Zarządzanie projektem
+Programowanie
+Biologia/medycyna
+Sztuka/design
+Analiza danych
+Języki obce
+Sprawność fizyczna/praca terenowa
+Chęć pracy zdalnej
+Występowanie publiczne
+Pisanie
+Priorytet: pieniądze
+Priorytet: rozwój
+Priorytet: stabilność
+Praca z ludźmi (jeśli 0, to praca solo)
+
+Zakładam, że to liczby od 0 do 1. Potem na nich trenujemy sieć neuronową, tzn. są to atrybuty. Ale siecią neuronową się nie zajmuj.
+
+INPUT do systemu:
+- Odpowiedzi na 21 pytań (17 zamkniętych; zgadzam się/nie zgadzam się, 7 opcji w stylu 16personalities; 4 pytania otwarte)
+- ID użytkownika
+
+OUTPUT:
+- Nic, ale zapisujemy wszystko w bazie (patrz poniżej)
+
+DZIAŁANIE, przynajmniej kilka spraw technicznych:
+- Pytania otwarte TEŻ są, poprzez OPENAI text-embedding model, zamieniane na cechy, jeśli dana kategoria będzie mocno wykryta w wypowiedzi.
+Chcę opracować jakiś fajny system, konfigurowalny, który zamieni odpowiedzi na te cechy. Potem chcę też
+
+# Aktualna lista pytań do testu psychologicznego (w nawiasie cecha na którą pytanie wpływa):
+1. Pasuje mi bycie w centrum zainteresowania (Ekstrawersja)
+2. Łatwo dogaduje się z nowymi osobami (Ekstrawersja)
+3. Muszę zaplanować pracę przed jej rozpoczęciem (sumienność)
+4. Mam problem z dotrzymywaniem terminów (sumienność)
+5. W sporze ważniejsze są uczucia, niż dotarcie do prawdy (ugodowość)
+6. Jestem bezkompromisowy i walczę o swoje (ugodowość)
+7. Miewam częste wahania nastroju (stabilność emocjonalna)
+8. Dobrze radzę sobie z emocjami (stabilność emocjonalna)
+9. Nie mam problemu z uzależnieniami (trochę koncentracja, trochę stabilność emocjonalna)
+10. Lubię nieszablonowe rozwiązania (Kreatywność)
+11. Mam predyspozycje do bycia artystą (Kreatywność)
+12. Swoje działania kieruję rozumem i logicznym myśleniem, bardziej niż emocjami (Myślenie logiczne)
+13. Jestem w stanie w coś uwierzyć, dając się swoim emocjom (Myślenie logiczne)
+14. Trudno mi utrzymać uwagę na jednej rzeczy (Koncentracja)
+15. Często zmieniam kierunek działania (Koncentracja)
+16. Grupa często widzi we mnie lidera (Przywództwo)
+17. Uważam, że byłbym dobrym dyrektorem albo przywódcą politycznym (Przywództwo)
+### Pytania otwarte
+18. Czego brakuje ci do pełni szczęścia?
+19. Jaki byłby twój wymarzony partner życiowy?
+20. Jak wyglądałby Twój wymarzony dzień?
+21. Czego w życiu najbardziej się boisz?
+
+(Trzeba wygładzić pytania językowo i płciowo)
+
+# Profil użytkownika w bazie danych
+Po zakończeniu testu, model LLM (na razie OpenAI) tworzy profil użytkownika, czyli 10 zdań na bazie wszystkich odpowiedzi w teście, który zapisuje w Supabase poprzez ID użytkownika. Osobne opisy i osobne cechy dla obu testów. Natomiast zasady "core" te same. 
+
+# Cechy użytkownika
+Cechy chcę zapisać w bazie Supabase również. Tej samej co wszystko inne. Cechy możemy ustalać prostymi regułami, np. dana odpowiedź daje +0.1 albo ileś tam, do danej cechy. Ale to sam wymyśl, by działało skutecznie (może masz zupełnie inny pomysł?).
+
+# Dodatkowo:
+- System będę łatwo dostosowywał do czułości sieci neuronowej na zmianę parametrów. Ta sieć wybierze zawód na bazie cech.
+- Jeśli chodzi o test zawodowy, zrób tylko szkielet, potem uzupełnimy.
+Poproszę o kompletny system, a także informacje, co mam dodać do bazy SQL.
+
+## Struktura tabel Supabase do utworzenia
+
+- `psychology_test_responses`
+  - `id` bigint PK
+  - `user_id` text
+  - `closed_answers` jsonb
+  - `open_answers` jsonb
+  - `traits` jsonb
+  - `created_at` timestamptz default now()
+
+- `vocational_test_responses`
+  - identyczne pola jak wyżej (przechowujemy surowe odpowiedzi i wyliczone cechy)
+
+- `user_traits`
+  - `id` bigint PK
+  - `user_id` text
+  - `trait_type` text (`psychology` / `vocation`)
+  - `traits` jsonb (mapa cecha->wartość 0-1)
+  - `created_at` timestamptz default now()
+
+- `user_personas`
+  - `id` bigint PK
+  - `user_id` text UNIQUE
+  - `persona_type` text (np. `tests`, `advice`)
+  - `persona_text` text
+  - `updated_at` timestamptz default now()

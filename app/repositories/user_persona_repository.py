@@ -16,9 +16,31 @@ class UserPersonaProvider(Protocol):
     async def get_persona(self, user_id: str | None) -> str | None:
         raise NotImplementedError
 
+    async def get_persona_by_type(self, user_id: str | None, persona_type: str) -> str | None:
+        raise NotImplementedError
+
+    async def save_persona(
+        self,
+        user_id: str,
+        persona_text: str,
+        persona_type: str = "default",
+    ) -> None:
+        raise NotImplementedError
+
 
 class NullUserPersonaProvider(UserPersonaProvider):
     async def get_persona(self, user_id: str | None) -> str | None:
+        return None
+
+    async def get_persona_by_type(self, user_id: str | None, persona_type: str) -> str | None:
+        return None
+
+    async def save_persona(
+        self,
+        user_id: str,
+        persona_text: str,
+        persona_type: str = "default",
+    ) -> None:
         return None
 
 
@@ -64,3 +86,52 @@ class SupabaseUserPersonaRepository(UserPersonaProvider):
         if isinstance(persona, str) and persona.strip():
             return persona.strip()
         return None
+
+    async def get_persona_by_type(self, user_id: str | None, persona_type: str) -> str | None:
+        if not user_id:
+            return None
+        try:
+            response = (
+                await self._client.table(self._table)
+                .select("persona_text")
+                .eq("user_id", user_id)
+                .eq("persona_type", persona_type)
+                .order("updated_at", desc=True)
+                .limit(1)
+                .execute()
+            )
+        except Exception as exc:  # pragma: no cover - network layer guard
+            logger.warning(
+                "Failed to fetch persona for user %s type %s: %s", user_id, persona_type, exc)
+            return None
+
+        error = getattr(response, "error", None)
+        if error:
+            logger.warning(
+                "Database error fetching persona for user %s type %s: %s",
+                user_id, persona_type, error)
+            return None
+
+        records = response.data or []
+        if not records:
+            return None
+
+        persona = records[0].get("persona_text")
+        if isinstance(persona, str) and persona.strip():
+            return persona.strip()
+        return None
+
+    async def save_persona(
+        self,
+        user_id: str,
+        persona_text: str,
+        persona_type: str = "default",
+    ) -> None:
+        await self._client.table(self._table).upsert(
+            {
+                "user_id": user_id,
+                "persona_type": persona_type,
+                "persona_text": persona_text,
+            },
+            on_conflict="user_id",
+        ).execute()

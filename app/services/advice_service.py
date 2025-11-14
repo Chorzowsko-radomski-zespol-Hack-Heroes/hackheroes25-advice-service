@@ -213,7 +213,7 @@ def build_openai_intent_detector() -> OpenAIEmbeddingAdviceIntentDetector:
     intent_model = os.getenv("OPENAI_INTENT_MODEL")
     return OpenAIEmbeddingAdviceIntentDetector(
         definitions=_OPENAI_INTENT_DEFINITIONS,
-        threshold=0.485,
+        threshold=0.472,
         log_limit=5,
         model=intent_model,
     )
@@ -504,10 +504,10 @@ _OPENAI_INTENT_DEFINITIONS: Sequence[AdviceIntentDefinition] = (
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.QUOTE,
-        description="Użytkownik JAWNIE prosi o cytat, sentencję lub inspirujące słowa.",
+        description="Użytkownik JAWNIE prosi o cytat, sentencję lub inspirujące słowa, ale nie chodzi mu o konkretną osobę.",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.PERSON,
-        description="Użytkownik prosi o informacje o konkretnej osobie, jej życiu, działalności lub wpływie. Np. użytkownik mówi \"znajdź osobę\" lub coś w tym stylu.",
+        description="Użytkownik prosi o informacje o konkretnej osobie, jej życiu, działalności lub wpływie. Np. użytkownik mówi \"znajdź osobę\" lub coś w tym stylu. Albo np. \"się zainspirować człowiekiem sukcesu\"",
     ),
 )

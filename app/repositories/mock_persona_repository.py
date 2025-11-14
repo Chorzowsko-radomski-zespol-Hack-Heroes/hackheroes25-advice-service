@@ -24,3 +24,10 @@ class MockUserPersonaRepository(UserPersonaProvider):
             return persona.strip()
         return None
 
+    async def save_persona(
+        self,
+        user_id: str,
+        persona_text: str,
+        persona_type: str = "default",
+    ) -> None:
+        self._personas[user_id] = persona_text
