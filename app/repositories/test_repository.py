@@ -32,16 +32,22 @@ class TestRepository:
         closed_answers: Sequence[int],
         open_answers: Sequence[str],
         traits: Mapping[str, float],
+        psychology_traits: Sequence[float],
     ) -> None:
-        await self._client.table(self._psych_table).insert(
-            {
-                "user_id": user_id,
-                "closed_answers": json.dumps(list(closed_answers)),
-                "open_answers": json.dumps(list(open_answers)),
-                "traits": json.dumps(traits),
-            }
-        ).execute()
-        await self._save_traits(user_id, traits, "psychology")
+        try:
+            await self._client.table(self._psych_table).insert(
+                {
+                    "user_id": user_id,
+                    "closed_answers": json.dumps(list(closed_answers)),
+                    "open_answers": json.dumps(list(open_answers)),
+                    "traits": json.dumps(traits),
+                    "psychology_traits": list(psychology_traits),
+                }
+            ).execute()
+            await self._save_traits(user_id, traits, "psychology")
+        except Exception as e:
+            print(f"Error saving psychology test: {e}")
+            raise
 
     async def save_vocational_test(
         self,
@@ -49,6 +55,7 @@ class TestRepository:
         closed_answers: Sequence[int],
         open_answers: Sequence[str],
         traits: Mapping[str, float],
+        vocational_traits: Sequence[float],
     ) -> None:
         await self._client.table(self._vocation_table).insert(
             {
@@ -56,6 +63,7 @@ class TestRepository:
                 "closed_answers": json.dumps(list(closed_answers)),
                 "open_answers": json.dumps(list(open_answers)),
                 "traits": json.dumps(traits),
+                "vocational_traits": list(vocational_traits),
             }
         ).execute()
         await self._save_traits(user_id, traits, "vocation")

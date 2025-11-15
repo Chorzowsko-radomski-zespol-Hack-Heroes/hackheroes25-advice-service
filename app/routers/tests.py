@@ -7,7 +7,7 @@ router = APIRouter(prefix="/tests", tags=["tests"])
 
 
 def get_test_service() -> TestProcessingService:
-    return _TEST_SERVICE
+    return build_test_processing_service()
 
 
 @router.post(
@@ -38,7 +38,4 @@ async def submit_vocational_test(
         return await service.submit_vocational_test(payload)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
-
-
-_TEST_SERVICE = build_test_processing_service()
 

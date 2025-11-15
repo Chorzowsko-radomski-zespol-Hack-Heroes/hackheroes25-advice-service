@@ -92,10 +92,17 @@ Poproszę o kompletny system, a także informacje, co mam dodać do bazy SQL.
   - `closed_answers` jsonb
   - `open_answers` jsonb
   - `traits` jsonb
+  - `psychology_traits` real[] (8 wartości: Ekstrawersja, Ugodowość, Sumienność, Stabilność emocjonalna, Kreatywność, Myślenie logiczne, Koncentracja, Przywództwo)
   - `created_at` timestamptz default now()
 
 - `vocational_test_responses`
-  - identyczne pola jak wyżej (przechowujemy surowe odpowiedzi i wyliczone cechy)
+  - `id` bigint PK
+  - `user_id` text
+  - `closed_answers` jsonb
+  - `open_answers` jsonb
+  - `traits` jsonb
+  - `vocational_traits` real[] (17 wartości: Majstrowanie, Kontakt z naturą, Obsługa komputera, Zarządzanie projektem, Programowanie, Biologia/medycyna, Sztuka/design, Analiza danych, Języki obce, Sprawność fizyczna/praca terenowa, Chęć pracy zdalnej, Występowanie publiczne, Pisanie, Priorytet: pieniądze, Priorytet: rozwój, Priorytet: stabilność, Praca z ludźmi)
+  - `created_at` timestamptz default now()
 
 - `user_traits`
   - `id` bigint PK

@@ -564,11 +564,15 @@ class TestProcessingService:
         merged = _merge_scores(trait_scores, open_scores)
         scoring_logs.append(f"Połączone wyniki: {dict(merged)}")
 
+        # Przygotuj listę cech psychologicznych w odpowiedniej kolejności
+        psychology_traits_list = [merged[trait] for trait in PSYCHO_TRAITS]
+
         await self._repository.save_psychology_test(
             payload.user_id,
             payload.closed_answers,
             payload.open_answers,
             merged,
+            psychology_traits_list,
         )
 
         # Generuj opis psychologiczny
@@ -655,11 +659,15 @@ class TestProcessingService:
             f"[Vocation] Scoring otwartych odpowiedzi: {dict(open_scores)}"
         )
         scoring_logs.append(f"[Vocation] Połączone wyniki: {dict(merged)}")
+        # Przygotuj listę cech zawodowych w odpowiedniej kolejności
+        vocational_traits_list = [merged[trait] for trait in VOCATION_TRAITS]
+
         await self._repository.save_vocational_test(
             payload.user_id,
             payload.closed_answers,
             payload.open_answers,
             merged,
+            vocational_traits_list,
         )
         psychology_traits = await self._repository.get_traits(
             payload.user_id, "psychology"
