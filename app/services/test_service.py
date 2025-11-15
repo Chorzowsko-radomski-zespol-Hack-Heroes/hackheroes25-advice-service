@@ -231,7 +231,7 @@ class OpenAnswerTraitClassifier:
             model=self._model,
             input=embedding_inputs,
         )
-        contributions: dict[str, float] = defaultdict(float)
+        contributions: dict[str, list[float]] = defaultdict(list)
         for answer_embedding in response.data:
             for idx, (trait, trait_embedding) in enumerate(self._trait_embeddings):
                 score = _cosine_similarity(
@@ -241,8 +241,8 @@ class OpenAnswerTraitClassifier:
                     excess = score - self._threshold
                     boost_factor = 1.0 + \
                         (excess / (1.0 - self._threshold)) * 3.0  # Do 4x więcej
-                    contributions[trait] += score * \
-                        self._max_boost * boost_factor
+                    contributions[trait].append(
+                        score * self._max_boost * boost_factor)
                 if self._allow_negative and self._negative_trait_embeddings:
                     negative_embedding = self._negative_trait_embeddings[idx][1]
                     negative_score = _cosine_similarity(
@@ -253,13 +253,20 @@ class OpenAnswerTraitClassifier:
                         negative_boost = 1.0 + (
                             (negative_excess / (1.0 - self._threshold)) * 3.0
                         )
-                        contributions[trait] -= (
+                        contributions[trait].append(-(
                             negative_score
                             * self._max_boost
                             * negative_boost
                             * self._negative_weight
-                        )
-        return contributions
+                        ))
+
+        # Dla każdej cechy wybierz tylko wartość z najwyższą wartością bezwzględną
+        final_contributions: dict[str, float] = {}
+        for trait, contrib_list in contributions.items():
+            if contrib_list:
+                # Wybierz wartość z najwyższą wartością bezwzględną
+                final_contributions[trait] = max(contrib_list, key=abs)
+        return final_contributions
 
     async def score_open_answers_detailed(
         self,
@@ -290,6 +297,8 @@ class OpenAnswerTraitClassifier:
                 "trait_matches": []
             }
 
+            trait_contributions: dict[str, list[dict]] = defaultdict(list)
+
             for idx, (trait, trait_embedding) in enumerate(self._trait_embeddings):
                 score = _cosine_similarity(
                     answer_embedding.embedding, trait_embedding)
@@ -298,16 +307,13 @@ class OpenAnswerTraitClassifier:
                     boost_factor = 1.0 + \
                         (excess / (1.0 - self._threshold)) * 3.0
                     contribution = score * self._max_boost * boost_factor
-                else:
-                    contribution = 0
-
-                answer_detail["trait_matches"].append({
-                    "trait": trait,
-                    "cosine_similarity": score,
-                    "contribution": contribution,
-                    "above_threshold": score >= self._threshold,
-                    "match_kind": "positive",
-                })
+                    trait_contributions[trait].append({
+                        "trait": trait,
+                        "cosine_similarity": score,
+                        "contribution": contribution,
+                        "above_threshold": True,
+                        "match_kind": "positive",
+                    })
 
                 if self._allow_negative and self._negative_trait_embeddings:
                     neg_embedding = self._negative_trait_embeddings[idx][1]
@@ -325,18 +331,30 @@ class OpenAnswerTraitClassifier:
                             * neg_boost
                             * self._negative_weight
                         )
-                    else:
-                        neg_contribution = 0
-
-                    answer_detail["trait_matches"].append(
-                        {
+                        trait_contributions[trait].append({
                             "trait": trait,
                             "cosine_similarity": neg_score,
                             "contribution": neg_contribution,
-                            "above_threshold": neg_score >= self._threshold,
+                            "above_threshold": True,
                             "match_kind": "negative",
-                        }
-                    )
+                        })
+
+            # Dla każdej cechy wybierz tylko wartość z najwyższą wartością bezwzględną
+            for trait, matches in trait_contributions.items():
+                if matches:
+                    # Wybierz dopasowanie z najwyższą wartością bezwzględną
+                    best_match = max(
+                        matches, key=lambda m: abs(m["contribution"]))
+                    answer_detail["trait_matches"].append(best_match)
+                else:
+                    # Jeśli nie ma żadnego dopasowania, dodaj wpis z zerowym wkładem
+                    answer_detail["trait_matches"].append({
+                        "trait": trait,
+                        "cosine_similarity": 0,
+                        "contribution": 0,
+                        "above_threshold": False,
+                        "match_kind": "none",
+                    })
 
             details.append(answer_detail)
 
