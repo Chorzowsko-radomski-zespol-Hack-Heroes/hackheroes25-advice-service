@@ -205,11 +205,7 @@ def build_supabase_advice_pipeline() -> SelectionEngine:
 
 
 def get_advice_service() -> AdviceService:
-    # TODO: replace build_default_advice_pipeline with production-ready dependencies
-    # (Supabase repositories, embedding-based classifiers, and LLM-powered response generators).
-    # Temporarily using default pipeline for chat UI demo (Supabase key invalid)
-    pipeline = build_default_advice_pipeline()
-    # pipeline = build_supabase_advice_pipeline()
+    pipeline = build_supabase_advice_pipeline()
     provider = PipelineAdviceProvider(pipeline=pipeline)
     return AdviceService(provider=provider)
 
@@ -286,7 +282,8 @@ _DEFAULT_ADVICE_ITEMS: Sequence[Advice] = (
     Advice(
         name="Atomic Habits",
         kind=AdviceKind.BOOK,
-        description="building good habits, breaking bad ones, productivity, self-improvement",  # For embeddings - keywords
+        # For embeddings - keywords
+        description="building good habits, breaking bad ones, productivity, self-improvement",
         llm_description="A comprehensive book about habit formation, written by James Clear, that explains how small changes can lead to remarkable results through the science of habits.",  # For LLM - what this is
         link_url="https://example.com/atomic-habits",
         image_url="https://example.com/atomic-habits.jpg",
@@ -296,7 +293,8 @@ _DEFAULT_ADVICE_ITEMS: Sequence[Advice] = (
     Advice(
         name="Lo-Fi Focus",
         kind=AdviceKind.MUSIC,
-        description="focus, concentration, calm, background music, study music",  # For embeddings - keywords
+        # For embeddings - keywords
+        description="focus, concentration, calm, background music, study music",
         llm_description="A genre of electronic music characterized by its relaxed, mellow tempo and instrumental nature, often used as background music for studying or working.",  # For LLM - what this is
         link_url="https://example.com/lofi-focus",
         image_url="https://example.com/lofi-focus.jpg",
@@ -305,7 +303,8 @@ _DEFAULT_ADVICE_ITEMS: Sequence[Advice] = (
     Advice(
         name="Guided Breathing Exercise",
         kind=AdviceKind.ADVICE,
-        description="stress relief, anxiety, breathing techniques, relaxation, overwhelm",  # For embeddings - keywords
+        # For embeddings - keywords
+        description="stress relief, anxiety, breathing techniques, relaxation, overwhelm",
         llm_description="A therapeutic breathing exercise that involves conscious control of breath to reduce stress and promote relaxation, commonly used in mindfulness and meditation practices.",  # For LLM - what this is
         link_url="https://example.com/breathing-exercise",
         categories=("mindfulness", "despair", "general"),
@@ -313,7 +312,8 @@ _DEFAULT_ADVICE_ITEMS: Sequence[Advice] = (
     Advice(
         name="Meaningful Quote Collection",
         kind=AdviceKind.QUOTE,
-        description="comfort, loneliness, sadness, inspiration, emotional support",  # For embeddings - keywords
+        # For embeddings - keywords
+        description="comfort, loneliness, sadness, inspiration, emotional support",
         llm_description="A curated collection of inspirational quotes from various authors and thinkers, designed to provide emotional comfort and perspective during difficult times.",  # For LLM - what this is
         link_url="https://example.com/meaningful-quotes",
         categories=("sadness", "longing"),
@@ -321,7 +321,8 @@ _DEFAULT_ADVICE_ITEMS: Sequence[Advice] = (
     Advice(
         name="First Psychotherapy Session Guide",
         kind=AdviceKind.PSYCHOTHERAPY,
-        description="first therapy session, preparation, expectations, mental health, counseling",  # For embeddings - keywords
+        # For embeddings - keywords
+        description="first therapy session, preparation, expectations, mental health, counseling",
         llm_description="A comprehensive guide explaining what to expect during a first psychotherapy session, including preparation tips, common concerns, and how to make the most of therapy.",  # For LLM - what this is
         link_url="https://example.com/therapy-guide",
         categories=("psychotherapy", "anxiety"),
