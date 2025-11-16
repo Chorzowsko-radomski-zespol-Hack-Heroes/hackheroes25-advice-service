@@ -213,7 +213,7 @@
             margin-bottom: 10px;
         }
 
-        .user-id-input {
+        .user-id {
             width: 100%;
             padding: 10px 15px;
             border: 2px solid #e1e5e9;
@@ -224,7 +224,7 @@
             background: white;
         }
 
-        .user-id-input:focus {
+        .user-id:focus {
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
@@ -350,7 +350,7 @@
                 font-size: 0.9rem;
             }
 
-            .user-id-input {
+            .user-id {
                 padding: 8px 12px;
                 font-size: 0.8rem;
             }
@@ -424,7 +424,7 @@
 
             <div class="chat-input-container">
                 <div class="user-id-container">
-                    <input type="text" class="user-id-input" id="user-id-input"
+                    <input type="text" class="user-id" id="user-id" name="user_id"
                         placeholder="User ID (domyślnie: chat-user)" />
                 </div>
                 <div class="chat-input">
@@ -447,7 +447,7 @@
             constructor() {
                 this.messagesContainer = document.getElementById('chat-messages');
                 this.messageInput = document.getElementById('message-input');
-                this.userIdInput = document.getElementById('user-id-input');
+                this.userIdInput = document.getElementById('user-id');
                 this.sendButton = document.getElementById('send-button');
                 this.statusElement = document.getElementById('status');
                 this.scrollButton = document.getElementById('scroll-to-bottom');
@@ -653,7 +653,7 @@
                         <div class="advice-title">💡 ${title}</div>
                     </div>
                     ${meta ? `<div class="advice-meta">${meta}</div>` : ''}
-                    <div class="advice-description">${advice.description || 'Brak opisu'}</div>
+                    <div class="advice-description">${advice.llm_description || 'Brak opisu'}</div>
                     <div class="advice-actions">
                         ${advice.link_url ? `<a href="${advice.link_url}" target="_blank" class="advice-link">🔗 Wypróbuj poradę</a>` : ''}
                         ${advice.image_url ? `<a href="${advice.image_url}" target="_blank" class="advice-link">🖼️ Zobacz obraz</a>` : ''}
