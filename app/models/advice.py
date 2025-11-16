@@ -39,12 +39,15 @@ class Advice:
     - `categories` are domain tags fetched from a separate table.
     - `embedding` is an optional cached text embedding stored in the `advices` table
       (used by embedding-based selection strategies).
+    - `description` is used for embeddings (keywords, context, "when").
+    - `llm_description` is used by LLM for understanding what this is ("what").
     - `id` is the database identifier when loaded from Supabase; in-memory items
       can safely leave it as `None`.
     """
     name: str
     kind: AdviceKind
-    description: str
+    description: str  # For embeddings - keywords, context, "when"
+    llm_description: Optional[str] = None  # For LLM - what this is, especially if niche
     link_url: Optional[str] = None
     image_url: Optional[str] = None
     author: Optional[str] = None
@@ -68,7 +71,8 @@ class AdviceRecommendation:
 class AdviceDetailsResponse(BaseModel):
     name: str
     kind: AdviceKind
-    description: str
+    description: str  # For embeddings - keywords, context
+    llm_description: Optional[str] = None  # For LLM - what this is
     link_url: Optional[str] = None
     image_url: Optional[str] = None
     author: Optional[str] = None
@@ -79,6 +83,7 @@ class AdviceDetailsResponse(BaseModel):
             name=advice.name,
             kind=advice.kind,
             description=advice.description,
+            llm_description=advice.llm_description,
             link_url=advice.link_url,
             image_url=advice.image_url,
             author=advice.author,

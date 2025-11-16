@@ -95,7 +95,7 @@ class TestRepository:
                 "trait_type": trait_type,
                 "traits": json.dumps(traits),
             },
-            on_conflict=["user_id", "trait_type"]
+            on_conflict="user_id,trait_type"
         ).execute()
 
     async def get_traits(self, user_id: str, trait_type: str) -> Mapping[str, float] | None:

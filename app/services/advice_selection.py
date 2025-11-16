@@ -646,7 +646,7 @@ class PersonaEmbeddingAdviceSelectionPipeline:
         # Ograniczamy się do TOP5 dopasowań, z mocnym naciskiem na TOP3
         filtered.sort(key=lambda item: item[1], reverse=True)
         top_candidates = filtered[:5]
-        position_multipliers = [30.0, 7, 4, 0.5, 0.25]
+        position_multipliers = [30.0, 8.5, 5, 0.5, 0.25]
 
         # 6. Probabilistic selection: similarity^2 z mnożnikami pozycji i intentu
         population: list[Advice] = []
@@ -991,7 +991,8 @@ class LLMAdviceResponseGenerator(AdviceResponseGenerator):
             self._log(
                 "⚠️ Brak identyfikatora użytkownika – persona nie będzie wykorzystana")
 
-        advice_description = advice.description or "Brak dodatkowego opisu."
+        # Use llm_description for LLM context, fallback to description if not available
+        advice_description = advice.llm_description or advice.description or "Brak dodatkowego opisu."
         categories_text = (
             ", ".join(
                 categories) if categories else "brak kategorii dopasowanych wprost"
@@ -1005,8 +1006,8 @@ class LLMAdviceResponseGenerator(AdviceResponseGenerator):
 
         system_prompt = (
             "Jesteś opiekuńczym asystentem."
-            "Twoim zadaniem jest wygenerowanie odpowiedzi, która będzie dostosowana do osobowości użytkownika i będzie miała charakter zwięzły, wspierający i pełen nadziei. Pisz językiem naturalnym, bez meta-informacji takich jak \"Znam twój profil osobowości\" albo \"Nazwa porady to X\". Jeśli czasem porada jest słabo dopasowana, spróbuj to \"wyratować\" mówiąc trochę ogólnikami i lekko usprawiedliwiając wybór."
-            "\nPisz 5 zdań, które będą wyraźnie dostosowane do osobowości użytkownika, upewnią go że jest zrozumiany, dają jedną praktyczną wskazówkę związaną z poradą i wyjaśniają sens porady. Zakończ zdanie emotką.:\n"
+            "Twoim zadaniem jest wygenerowanie odpowiedzi, która będzie dostosowana do osobowości użytkownika i będzie miała charakter, wspierający i pełen nadziei. Pisz językiem naturalnym, bez meta-informacji takich jak \"Znam twój profil osobowości\" albo \"Nazwa porady to X\". Używaj prostej interpunkcji i podziel wiadomość na dwa akapity oddzielone dwoma znakami nowej linii. Jeśli porada będzie słabo dopasowana, spróbuj to \"wyratować\" mówiąc trochę ogólnikami i lekko usprawiedliwiając wybór."
+            "Pisz 5 zdań, które będą wyraźnie dostosowane do osobowości użytkownika, będą przystępne i upewnią go że jest zrozumiany, które wyjaśnią poradę. Zakończ odpowiedź emotką."
         )
 
         author_line = f"Autor: {advice.author}\n" if advice.author else ""
@@ -1056,7 +1057,8 @@ class LLMAdviceResponseGenerator(AdviceResponseGenerator):
         user_message: str,
         persona_text: str | None,
     ) -> str:
-        raw_description = advice.description or (
+        # Use llm_description for LLM context, fallback to description if not available
+        raw_description = advice.llm_description or advice.description or (
             "Ta propozycja zawiera wartościowe wskazówki, które możesz spokojnie zastosować."
         )
         clean_description = re.sub(r"[.!?]+", "", raw_description).strip()
@@ -1097,7 +1099,8 @@ class MockAdviceResponseGenerator(AdviceResponseGenerator):
         categories: Sequence[str],
         preferred_kind: AdviceKind | None,
     ) -> str:
-        description = advice.description or "Ta propozycja ma potencjał wprowadzić pozytywną zmianę."
+        # Use llm_description for LLM context, fallback to description if not available
+        description = advice.llm_description or advice.description or "Ta propozycja ma potencjał wprowadzić pozytywną zmianę."
         categories_text = ", ".join(
             categories) if categories else "ogólne wskazówki"
         kind_text = advice.kind.value.replace("_", " ")
