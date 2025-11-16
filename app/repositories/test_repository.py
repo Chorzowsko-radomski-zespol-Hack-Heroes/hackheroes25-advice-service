@@ -35,14 +35,16 @@ class TestRepository:
         psychology_traits: Sequence[float],
     ) -> None:
         try:
-            await self._client.table(self._psych_table).insert(
+            # Upsert: jeśli użytkownik już ma wyniki, nadpisz je
+            await self._client.table(self._psych_table).upsert(
                 {
                     "user_id": user_id,
                     "closed_answers": json.dumps(list(closed_answers)),
                     "open_answers": json.dumps(list(open_answers)),
                     "traits": json.dumps(traits),
                     "psychology_traits": list(psychology_traits),
-                }
+                },
+                on_conflict="user_id"
             ).execute()
             await self._save_traits(user_id, traits, "psychology")
         except Exception as e:
@@ -57,16 +59,18 @@ class TestRepository:
         traits: Mapping[str, float],
         vocational_traits: Sequence[float],
     ) -> None:
-        await self._client.table(self._vocation_table).insert(
+        # Upsert: jeśli użytkownik już ma wyniki, nadpisz je
+        await self._client.table(self._vocation_table).upsert(
             {
                 "user_id": user_id,
                 "closed_answers": json.dumps(list(closed_answers)),
                 "open_answers": json.dumps(list(open_answers)),
                 "traits": json.dumps(traits),
                 "vocational_traits": list(vocational_traits),
-            }
+            },
+            on_conflict="user_id"
         ).execute()
-        await self._save_traits(user_id, traits, "vocation")
+        await self._save_traits(user_id, traits, "vocational")
 
     async def has_psychology_results(self, user_id: str) -> bool:
         response = (
@@ -84,12 +88,14 @@ class TestRepository:
         traits: Mapping[str, float],
         trait_type: str,
     ) -> None:
-        await self._client.table(self._trait_table).insert(
+        # Upsert: jeśli użytkownik już ma cechy danego typu, nadpisz je
+        await self._client.table(self._trait_table).upsert(
             {
                 "user_id": user_id,
                 "trait_type": trait_type,
                 "traits": json.dumps(traits),
-            }
+            },
+            on_conflict=["user_id", "trait_type"]
         ).execute()
 
     async def get_traits(self, user_id: str, trait_type: str) -> Mapping[str, float] | None:
