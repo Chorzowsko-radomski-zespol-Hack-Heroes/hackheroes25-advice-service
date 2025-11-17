@@ -234,7 +234,7 @@ def build_openai_intent_detector() -> OpenAIEmbeddingAdviceIntentDetector:
     intent_model = os.getenv("OPENAI_INTENT_MODEL")
     return OpenAIEmbeddingAdviceIntentDetector(
         definitions=_OPENAI_INTENT_DEFINITIONS,
-        threshold=0.472,
+        threshold=0.485,
         log_limit=5,
         model=intent_model,
     )
@@ -503,7 +503,7 @@ _OPENAI_INTENT_DEFINITIONS: Sequence[AdviceIntentDefinition] = (
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.MUSIC,
-        description="Użytkownik JAWNIE prosi o muzykę, utwór lub playlistę.",
+        description="Użytkownik JAWNIE prosi o muzykę, utwór, lub playlistę.",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.YOUTUBE_VIDEO,
@@ -515,7 +515,7 @@ _OPENAI_INTENT_DEFINITIONS: Sequence[AdviceIntentDefinition] = (
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.HABIT,
-        description="Użytkownik JAWNIE prosi o nawyk, rutynę lub małe zadanie do wdrożenia.",
+        description="Użytkownik JAWNIE prosi o propozycję nawyku lub rutyny.",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.ADVICE,
