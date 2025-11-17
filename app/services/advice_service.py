@@ -515,15 +515,15 @@ _OPENAI_INTENT_DEFINITIONS: Sequence[AdviceIntentDefinition] = (
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.HABIT,
-        description="Użytkownik JAWNIE prosi o propozycję nawyku lub rutyny, ale o konkretny nawyk a nie coś związanego z nawykami, np. książkę.",
+        description="Użytkownik JAWNIE prosi o propozycję nawyku lub rutyny, ale o konkretny nawyk a nie tylko wykorzystanie czegoś w praktyce, albo nie np. książka o nawykach.",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.ADVICE,
-        description="Użytkownik JAWNIE i BARDZO konkretnie prosi ogólnie o poradę lub wskazówkę, nie precyzując formatu.",
+        description="Użytkownik JAWNIE i bardzo KONKRETNIE prosi ogólnie o poradę lub wskazówkę, nie precyzując formatu.",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.CONCEPT,
-        description="Użytkownik JAWNIE prosi o wyjaśnienie pojęcia, idei albo definicji.",
+        description="Użytkownik JAWNIE prosi o wytłumaczanie lub pokazanie pojęcia, idei albo definicji.",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.PSYCHOTHERAPY,
