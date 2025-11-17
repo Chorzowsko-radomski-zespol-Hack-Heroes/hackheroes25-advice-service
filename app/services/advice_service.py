@@ -495,7 +495,7 @@ _OPENAI_CATEGORY_DEFINITIONS: Sequence[EmbeddingCategoryDefinition] = (
 _OPENAI_INTENT_DEFINITIONS: Sequence[AdviceIntentDefinition] = (
     AdviceIntentDefinition(
         kind=AdviceKind.BOOK,
-        description="Użytkownik JAWNIE prosi o książkę lub rekomendację do przeczytania.",
+        description="Książka. Poleć książkę. Szukam książki. Rekomendacja książki. Literatura.",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.MOVIE,
@@ -515,7 +515,7 @@ _OPENAI_INTENT_DEFINITIONS: Sequence[AdviceIntentDefinition] = (
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.HABIT,
-        description="Użytkownik JAWNIE prosi o propozycję konkretnego nawyku lub rutyny. NIE wliczają się w to materiały o nawykach takie jak książki.",
+        description="Nawyk. Chcę wypracować nawyk. Jaki nawyk polecasz? Rutyna.",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.ADVICE,
