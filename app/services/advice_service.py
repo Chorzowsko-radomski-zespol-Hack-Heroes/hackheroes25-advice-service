@@ -234,7 +234,7 @@ def build_openai_intent_detector() -> OpenAIEmbeddingAdviceIntentDetector:
     intent_model = os.getenv("OPENAI_INTENT_MODEL")
     return OpenAIEmbeddingAdviceIntentDetector(
         definitions=_OPENAI_INTENT_DEFINITIONS,
-        threshold=0.485,
+        threshold=0.525,
         log_limit=5,
         model=intent_model,
     )
@@ -495,50 +495,50 @@ _OPENAI_CATEGORY_DEFINITIONS: Sequence[EmbeddingCategoryDefinition] = (
 _OPENAI_INTENT_DEFINITIONS: Sequence[AdviceIntentDefinition] = (
     AdviceIntentDefinition(
         kind=AdviceKind.BOOK,
-        description="Książka. Poleć książkę. Szukam książki. Rekomendacja książki. Literatura.",
+        description="Książka. Poszukiwania książki. Poleć książkę. Szukam książki. Rekomendacja książki. Literatura. Chcę przeczytać książkę, czy znasz jakąś?",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.MOVIE,
-        description="Użytkownik JAWNIE szuka filmu lub serialu do obejrzenia.",
+        description="Film. Serial. Czy znasz jakiś film? Czy znasz jakiś serial? Czy możesz polecić mi film? Poszukiwanie filmu. Poszukiwanie serialu.",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.MUSIC,
-        description="Użytkownik JAWNIE prosi o muzykę, utwór, lub playlistę.",
+        description="Muzyka. Utwór muzyczny. Czy znasz jakiś utwór? Czy znasz piosenkę na X? Czy możesz polecić mi muzykę? Chciałbym posłuchać muzyki. Poszukiwanie muzyki. Poszukiwanie utworu. Poszukiwanie piosenki.`",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.YOUTUBE_VIDEO,
-        description="Użytkownik JAWNIE chce otrzymać link lub propozycję filmiku na YouTube (w skrócie YT).",
+        description="Filmik na YouTube. Film na YouTube. Link YouTube. Propozycja filmiku na YouTube. YT. Czy znasz filmik na YT? Czy możesz polecić jakiś filmik na YT o tematyce X?",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.ARTICLE,
-        description="Użytkownik JAWNIE szuka artykułu, publikacji lub wpisu do przeczytania.",
+        description="Artykuł. Publikacja. Poszukiwanie artykułu na internecie. Artykuł internetowy popularnonaukowy. Czy znasz jakiś artykuł?",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.HABIT,
-        description="Nawyk. Chcę wypracować nawyk. Jaki nawyk polecasz? Rutyna.",
+        description="Zaproponuj nawyk. Pytanie o konkretny nawyk. Codzienna czynność. Co mogę robić codziennie? Chcę wypracować nawyk. Jaki nawyk polecasz? Rutyna.",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.ADVICE,
-        description="Użytkownik JAWNIE i bardzo KONKRETNIE prosi ogólnie o poradę lub wskazówkę, nie precyzując formatu.",
+        description="Porada. Konkretna porada. Pytanie o konkretną poradę. Poszukiwanie konkretnej porady. Ogólna wskazówka. Ogólna porada. Czy możesz dać mi poradę? Czy możesz dać mi jedną konkretną wskazówkę?",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.CONCEPT,
-        description="Użytkownik JAWNIE prosi o wytłumaczanie lub pokazanie pojęcia, idei albo definicji.",
+        description="Pojęcie. Idea. Definicja. Koncepcja. Wyjaśnij mi pojęcie. Wytłumacz mi koncepcję. Zainspiruj mnie ideą lub pojęciem. Czy znasz jakieś pojęcie? Zainteresuj mnie koncepcją.",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.PSYCHOTHERAPY,
-        description="Użytkownik JAWNIE prosi o konkretną terapię lub poszukuje materiałów terapeutycznych.",
+        description="Terapia. Psychoterapia. Materiały terapeutyczne. Pomoc psychologiczna. Czy znasz jakiś materiał terapeutyczny? Czy znasz psychoterapię? Nurty psychoterapeutyczne. Chciałbym skontaktować się z psychologiem. Poszukiwanie psychologa. Poszukiwanie materiałów terapeutycznych.",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.PODCAST,
-        description="Użytkownik JAWNIE prosi o podcast lub odcinek audio do posłuchania.",
+        description="Podcast. Odcinek audio. Rozmowa w formie podcastu. Rozmowa ludzi na internecie w formie audio. Czy znasz jakiś podcast? Czy znasz jakiś odcinek audio?",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.QUOTE,
-        description="Użytkownik JAWNIE prosi o cytat, sentencję lub inspirujące słowa, ale nie chodzi mu o konkretną osobę.",
+        description="Cytat. Sentencja. Inspirujące słowa. Słowa otuchy. Czy znasz jakiś cytat? Czy znasz jakiś sentencję? Czy znasz jakiś inspirujące słowa? Czy znasz jakiś słowa otuchy? Dodaj mi otuchy słowami znanego człowieka. Zdanie sławnego człowieka. Cytat człowieka sukcesu.",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.PERSON,
-        description="Użytkownik prosi o informacje o konkretnej osobie, jej życiu, działalności lub wpływie. Np. użytkownik mówi \"znajdź osobę\" lub coś w tym stylu. Albo np. \"się zainspirować człowiekiem sukcesu\"",
+        description="Konkretna osoba. Życie osoby. Inspirująca osoba. Człowiek sukcesu. Znajdź osobę która X. Poszukiwanie osoby która X. Poleć mi znaną osobę która X. Znajdź inspirującą osobę.",
     ),
 )

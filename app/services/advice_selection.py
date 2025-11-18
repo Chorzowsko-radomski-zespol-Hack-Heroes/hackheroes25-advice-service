@@ -992,7 +992,7 @@ class LLMAdviceResponseGenerator(AdviceResponseGenerator):
                 "⚠️ Brak identyfikatora użytkownika – persona nie będzie wykorzystana")
 
         # Use llm_description for LLM context, fallback to description if not available
-        advice_description = advice.llm_description or advice.description or "Brak dodatkowego opisu."
+        advice_description = advice.llm_description or "Brak."
         categories_text = (
             ", ".join(
                 categories) if categories else "brak kategorii dopasowanych wprost"
@@ -1058,7 +1058,7 @@ class LLMAdviceResponseGenerator(AdviceResponseGenerator):
         persona_text: str | None,
     ) -> str:
         # Use llm_description for LLM context, fallback to description if not available
-        raw_description = advice.llm_description or advice.description or (
+        raw_description = advice.llm_description or (
             "Ta propozycja zawiera wartościowe wskazówki, które możesz spokojnie zastosować."
         )
         clean_description = re.sub(r"[.!?]+", "", raw_description).strip()
@@ -1100,7 +1100,7 @@ class MockAdviceResponseGenerator(AdviceResponseGenerator):
         preferred_kind: AdviceKind | None,
     ) -> str:
         # Use llm_description for LLM context, fallback to description if not available
-        description = advice.llm_description or advice.description or "Ta propozycja ma potencjał wprowadzić pozytywną zmianę."
+        description = advice.llm_description or "Ta propozycja ma potencjał wprowadzić pozytywną zmianę."
         categories_text = ", ".join(
             categories) if categories else "ogólne wskazówki"
         kind_text = advice.kind.value.replace("_", " ")
