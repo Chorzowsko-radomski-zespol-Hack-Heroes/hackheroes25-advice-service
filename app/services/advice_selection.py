@@ -562,13 +562,14 @@ class PersonaEmbeddingAdviceSelectionPipeline:
             )
 
         # 2. Build embedding input combining profiles and current message
-        embedding_input_lines = [
-            f"Profil psychologiczny użytkownika: {psych_profile}",
-        ]
-        if vocational_profile:
-            embedding_input_lines.append(
-                f"Profil zawodowy użytkownika: {vocational_profile}"
-            )
+        embedding_input_lines = []
+        # embedding_input_lines = [
+        #     f"Profil psychologiczny użytkownika: {psych_profile}",
+        # ]
+        # if vocational_profile:
+        #     embedding_input_lines.append(
+        #         f"Profil zawodowy użytkownika: {vocational_profile}"
+        #     )
         embedding_input_lines.append(
             f"Wiadomość użytkownika: {request.user_message}")
         embedding_input = "\n".join(embedding_input_lines)
@@ -643,29 +644,57 @@ class PersonaEmbeddingAdviceSelectionPipeline:
                 "Brak wystarczająco dopasowanej porady do profilu użytkownika."
             )
 
-        # Ograniczamy się do TOP5 dopasowań, z mocnym naciskiem na TOP3
+        # Ograniczamy się do TOP5 dopasowań
         filtered.sort(key=lambda item: item[1], reverse=True)
-        top_candidates = filtered[:5]
-        position_multipliers = [30.0, 8.5, 5, 0.5, 0.25]
+        top_candidates = filtered[:6]
 
-        # 6. Probabilistic selection: similarity^2 z mnożnikami pozycji i intentu
+        if not top_candidates:
+            raise AdviceNotFoundError("Brak kandydatów do wyboru.")
+
+        # 6. Probabilistic selection: waga zależy głównie od score'a
+        # Znajdź najwyższy score dla normalizacji
+        max_score = top_candidates[0][1]
+        min_score = top_candidates[-1][1]
+        score_range = max_score - min_score if max_score > min_score else 1.0
+
+        # Próg minimalny już został zastosowany wcześniej
+        # Teraz wzmacniamy różnice między score'ami
         population: list[Advice] = []
         weights: list[float] = []
+
         for idx, (advice, score) in enumerate(top_candidates):
-            weight = score * score
-            weight *= (
-                position_multipliers[idx]
-                if idx < len(position_multipliers)
-                else position_multipliers[-1]
-            )
+            # Waga bazowa: score^4 dla drastycznego wzmocnienia różnic
+            # Normalizujemy względem threshold, żeby score'y powyżej threshold miały większą wagę
+            excess_over_threshold = score - self._similarity_threshold
+            normalized_excess = excess_over_threshold / \
+                (1.0 - self._similarity_threshold) if self._similarity_threshold < 1.0 else excess_over_threshold
+
+            # Waga bazowa z wykładniczym wzmocnieniem dla wyższych score'ów
+            # score^4 daje drastyczne różnice między podobnymi wartościami
+            # base_weight = (score ** 4) * (1.0 + normalized_excess * 3.0)
+            base_weight = (score ** 32) * (1.0 + normalized_excess * 3.0)
+
+            # Mniejszy wpływ pozycji - tylko delikatne wsparcie dla TOP3
+            position_boost = 1.0
+            if idx == 0:
+                position_boost = 1.2  # Tylko 20% boost dla pierwszego
+            elif idx == 1:
+                position_boost = 1.1  # 10% dla drugiego
+            elif idx == 2:
+                position_boost = 1.05  # 5% dla trzeciego
+
+            weight = base_weight * position_boost
+
+            # Intent matching - nadal ważne
             if intent_match:
                 if advice.kind == intent_match.kind:
                     weight *= 1.8
                 else:
                     weight *= 0.15
+
             # Small jitter to avoid deterministic behaviour for ties
-            weight *= random.uniform(0.9, 1.1)
-            weights.append(max(weight, 0.01))
+            weight *= random.uniform(0.95, 1.05)
+            weights.append(max(weight, 1e-15))
             population.append(advice)
 
         total_weight = sum(weights)
@@ -678,11 +707,15 @@ class PersonaEmbeddingAdviceSelectionPipeline:
             selected = random.choices(
                 population=population, weights=weights, k=1)[0]
 
+        # Oblicz prawdopodobieństwa dla logowania
+        probabilities = [w / total_weight for w in weights] if total_weight > 0 else [
+            1.0 / len(weights)] * len(weights)
+
         self._record(
-            "Podsumowanie podobieństw embeddingowych (TOP 5):\n"
+            "Podsumowanie podobieństw embeddingowych (TOP 7):\n"
             + "\n".join(
-                f"  - {advice.name} ({advice.kind.value}): score={score:.3f}"
-                for advice, score in top_candidates
+                f"  - {advice.name} ({advice.kind.value}): score={score:.3f}, prawdopodobieństwo={prob:.1%}"
+                for (advice, score), prob in zip(top_candidates, probabilities)
             )
         )
         self._record(
