@@ -697,6 +697,18 @@ class TestProcessingService:
             question_details=question_details,
         )
 
+    async def get_psychology_test_results(
+        self, user_id: str
+    ) -> dict[str, Any] | None:
+        """Pobiera wyniki testu psychologicznego dla użytkownika."""
+        return await self._repository.get_psychology_test_results(user_id)
+
+    async def get_vocational_test_results(
+        self, user_id: str
+    ) -> dict[str, Any] | None:
+        """Pobiera wyniki testu zawodowego dla użytkownika."""
+        return await self._repository.get_vocational_test_results(user_id)
+
 
 # --- Helpers -----------------------------------------------------------------
 

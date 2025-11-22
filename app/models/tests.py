@@ -135,6 +135,24 @@ class TestSubmissionResponse(BaseModel):
     question_details: list[dict] = Field(default_factory=list)
 
 
+class PsychologyTestResultsResponse(BaseModel):
+    user_id: str
+    closed_answers: list[int]
+    open_answers: list[str]
+    traits: Mapping[str, float]
+    psychology_traits: list[float]
+    created_at: str | None = None
+
+
+class VocationalTestResultsResponse(BaseModel):
+    user_id: str
+    closed_answers: list[int]
+    open_answers: list[str]
+    traits: Mapping[str, float]
+    vocational_traits: list[float]
+    created_at: str | None = None
+
+
 @dataclass(frozen=True)
 class TraitImpact:
     trait: str

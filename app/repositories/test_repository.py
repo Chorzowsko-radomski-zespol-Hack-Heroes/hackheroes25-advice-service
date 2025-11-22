@@ -115,3 +115,57 @@ class TestRepository:
             return json.loads(records[0]["traits"])
         except Exception:
             return None
+
+    async def get_psychology_test_results(self, user_id: str) -> dict[str, Any] | None:
+        """Pobiera wyniki testu psychologicznego dla użytkownika."""
+        response = (
+            await self._client.table(self._psych_table)
+            .select("*")
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+        records = response.data or []
+        if not records:
+            return None
+        record = records[0]
+        try:
+            return {
+                "user_id": record.get("user_id"),
+                "closed_answers": json.loads(record.get("closed_answers", "[]")),
+                "open_answers": json.loads(record.get("open_answers", "[]")),
+                "traits": json.loads(record.get("traits", "{}")),
+                "psychology_traits": record.get("psychology_traits", []),
+                "created_at": record.get("created_at"),
+            }
+        except Exception as e:
+            print(f"Error parsing psychology test results: {e}")
+            return None
+
+    async def get_vocational_test_results(self, user_id: str) -> dict[str, Any] | None:
+        """Pobiera wyniki testu zawodowego dla użytkownika."""
+        response = (
+            await self._client.table(self._vocation_table)
+            .select("*")
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+        records = response.data or []
+        if not records:
+            return None
+        record = records[0]
+        try:
+            return {
+                "user_id": record.get("user_id"),
+                "closed_answers": json.loads(record.get("closed_answers", "[]")),
+                "open_answers": json.loads(record.get("open_answers", "[]")),
+                "traits": json.loads(record.get("traits", "{}")),
+                "vocational_traits": record.get("vocational_traits", []),
+                "created_at": record.get("created_at"),
+            }
+        except Exception as e:
+            print(f"Error parsing vocational test results: {e}")
+            return None

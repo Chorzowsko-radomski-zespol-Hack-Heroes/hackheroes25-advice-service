@@ -503,7 +503,7 @@ _OPENAI_INTENT_DEFINITIONS: Sequence[AdviceIntentDefinition] = (
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.MUSIC,
-        description="Muzyka. Utwór muzyczny. Czy znasz jakiś utwór? Czy znasz piosenkę na X? Czy możesz polecić mi muzykę? Chciałbym posłuchać muzyki. Poszukiwanie muzyki. Poszukiwanie utworu. Poszukiwanie piosenki.`",
+        description="Muzyka. Utwór muzyczny. Muza. Słuchanie muzy. Czy znasz jakiś utwór? Czy znasz piosenkę na X? Czy możesz polecić mi muzykę? Chciałbym posłuchać muzyki. Poszukiwanie muzyki. Poszukiwanie utworu. Poszukiwanie piosenki.`",
     ),
     AdviceIntentDefinition(
         kind=AdviceKind.YOUTUBE_VIDEO,

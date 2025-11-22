@@ -1,6 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
-from app.models.tests import PsychologyTestRequest, TestSubmissionResponse, VocationalTestRequest
+from app.models.tests import (
+    PsychologyTestRequest,
+    PsychologyTestResultsResponse,
+    TestSubmissionResponse,
+    VocationalTestRequest,
+    VocationalTestResultsResponse,
+)
 from app.services.test_service import TestProcessingService, build_test_processing_service
 
 router = APIRouter(prefix="/tests", tags=["tests"])
@@ -39,3 +45,36 @@ async def submit_vocational_test(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 
+
+@router.get(
+    "/psychology",
+    response_model=PsychologyTestResultsResponse,
+    summary="Get psychology test results for a user",
+)
+async def get_psychology_test_results(
+    user_id: str = Query(..., description="User ID to get test results for"),
+    service: TestProcessingService = Depends(get_test_service),
+) -> PsychologyTestResultsResponse:
+    results = await service.get_psychology_test_results(user_id)
+    if not results:
+        raise HTTPException(
+            status_code=404, detail=f"No psychology test results found for user_id: {user_id}"
+        )
+    return PsychologyTestResultsResponse(**results)
+
+
+@router.get(
+    "/vocation",
+    response_model=VocationalTestResultsResponse,
+    summary="Get vocational test results for a user",
+)
+async def get_vocational_test_results(
+    user_id: str = Query(..., description="User ID to get test results for"),
+    service: TestProcessingService = Depends(get_test_service),
+) -> VocationalTestResultsResponse:
+    results = await service.get_vocational_test_results(user_id)
+    if not results:
+        raise HTTPException(
+            status_code=404, detail=f"No vocational test results found for user_id: {user_id}"
+        )
+    return VocationalTestResultsResponse(**results)
