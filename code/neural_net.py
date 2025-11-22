@@ -53,7 +53,7 @@ except:
 
 model.compile(optimizer='adam', loss='mse', metrics=['mae'])
 if train:
-    model.fit(X_train, y_train, epochs=100, batch_size=32, verbose=0)
+    model.fit(X_train, y_train, epochs=5000, batch_size=32, verbose=0)
     model.save_weights("data/.weights.h5")
 
 def recommendations(personality_vector, wpep_mode, job_count):
