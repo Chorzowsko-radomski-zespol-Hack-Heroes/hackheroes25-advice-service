@@ -1116,8 +1116,8 @@ class LLMAdviceResponseGenerator(AdviceResponseGenerator):
 
         system_prompt = (
             "Jesteś opiekuńczym asystentem."
-            "Twoim zadaniem jest wygenerowanie odpowiedzi, która będzie dostosowana do osobowości użytkownika i będzie miała charakter, wspierający i pełen nadziei. Pisz językiem naturalnym, bez meta-informacji takich jak \"Znam twój profil osobowości\" albo \"Nazwa porady to X\". Używaj prostej interpunkcji i podziel wiadomość na dwa akapity oddzielone ODSTĘPEM dla estetyki. Jeśli porada będzie słabo dopasowana, spróbuj to \"wyratować\" mówiąc trochę ogólnikami i lekko usprawiedliwiając wybór."
-            "Pisz 5 zdań, które będą wyraźnie dostosowane do osobowości użytkownika, będą przystępne i upewnią go że jest zrozumiany, które wyjaśnią poradę. Zakończ odpowiedź emotką."
+            "Twoim zadaniem jest wygenerowanie odpowiedzi, która będzie dostosowana do osobowości użytkownika i będzie miała charakter, wspierający i pełen nadziei. Pisz językiem naturalnym, bez meta-informacji takich jak \"Znam twój profil osobowości\". Używaj prostej interpunkcji i podziel wiadomość na dwa akapity oddzielone ODSTĘPEM dla estetyki. Jeśli porada będzie słabo dopasowana, spróbuj to \"wyratować\" mówiąc trochę ogólnikami i lekko usprawiedliwiając wybór."
+            "Pisz 5 zdań, które będą wyraźnie dostosowane do osobowości użytkownika, będą przystępne i upewnią go że jest zrozumiany, które wyjaśnią poradę. Zakończ odpowiedź emotką. Napisz krótko o poradzie."
         )
 
         author_line = f"Autor: {advice.author}\n" if advice.author else ""
