@@ -1,0 +1,70 @@
+Strażak,8
+Policjant,8
+Ratownik medyczny,9
+Żołnierz,8
+Data scientist,9
+Data analyst,8
+Business analyst,8
+Specjalista ds cyberbezpieczeństwa,10
+Programista,8
+Statystyk,7
+Matematyk,6
+Fizyk,4
+Kierownik projektu,8
+Grafik komputerowy,4
+Projektant UI/UX,7
+Pracownik HR,6
+Konsultant IT,8
+Tester oprogramowania,5
+Trener personalny,6
+Ogrodnik,6
+Lekarz,10
+Weterynarz,6
+Farmaceuta,6
+Stomatolog,5
+Pielęgniarka,10
+Fizjoterapeuta,9
+Psycholog,9
+Psychiatra,10
+Coach,4
+Hydraulik,9
+Stolarz,7
+Mechanik,8
+Elektryk,10
+Kierownik magazynu,7
+Operator maszyn,6
+Projektant wnętrz,6
+Urbanista,5
+Kucharz,8
+Kelner,5
+Reżyser,2
+Aktor,3
+Muzyk,3
+Fotograf,3
+Pisarz,2
+Architekt,7
+Montażysta wideo,5
+Realizator dźwięku,4
+Kierownik sklepu,6
+Przedstawiciel handlowy,7
+Specjalista ds marketingu,7
+Specjalista ds social mediów,5
+Tłumacz,3
+Doradca_podatkowy,7
+Prawnik,6
+Dziennikarz,3
+Analityk finansowy,8
+Księgowy,7
+Agent ubezpieczeniowy,5
+Pracownik biura podróży,3
+Pilot samolotu,7
+Maszynista,8
+Kierowca,8
+Logistyk,8
+Nauczyciel,9
+Bibliotekarz,3
+Naukowiec,5
+Fryzjer,6
+Kosmetyczka,6
+Przedsiębiorca,5
+Komornik,2

@@ -1,9 +1,14 @@
+from code.career_adviser import get_jobs
 from neural_net import recommendations
 import numpy as np
-def get_jobs(inp, wpep_mode, j_print): #inp=[0.12, 0.98, 0.44...]
-    pers_input=np.array(inp)
-    top=recommendations(pers_input, wpep_mode, j_print)
-    return top #top[0][i]=jobs, top[1][i]=scores for jobs(needs to be *100 to return precent)
-out=get_jobs([0.66,0.64,0.01,0.28,0.52,0.64,0.93,0.6,0.95,0.41,0.7,0.89,0.01,0.68,0.42,0.84,0.45,0.99,0.61,0.55,0.5,0.52,0.62,0.84,0.82], 1, 5)
-for i in range(len(out[0])):
-    print(out[0][i], out[1][i])
+
+if __name__ == "__main__":
+    pers_input = [0.35, 0.8, 0.8, 0.9, 0.68, 0.6, 0.56, 0.48,  # psychology
+                  0.03, 0.4, 0.96, 0.6, 0.93, 0.5,  # ostatnie: medycyna/biologia
+                  0.76, 0.77, 0.7, 0.45, 0.36, 0.5,  # ostatnie: wystąpienia publiczne
+                  0.7, 0.6, 0.90, 0.3, 0.8  # ostatnie: praca z ludźmi
+                  ]
+
+    out = get_jobs(pers_input, 1, 5)
+    for i in range(len(out[0])):
+        print(out[0][i], out[1][i] * 100)
