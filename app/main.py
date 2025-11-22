@@ -27,3 +27,9 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/")
 def root():
     return FileResponse("static/index.html")
+
+
+@app.get("/health")
+def health_check():
+    """Health check endpoint for Fly.io and load balancers."""
+    return {"status": "ok"}

@@ -41,33 +41,54 @@ job = ["Strażak", "Policjant", "Ratownik medyczny", "Żołnierz", "Data scienti
        "Analityk finansowy", "Księgowy", "Agent ubezpieczeniowy", "Pracownik biura podróży", "Pilot samolotu", "Maszynista", "Kierowca", "Logistyk", "Nauczyciel",
        "Bibliotekarz", "Naukowiec", "Fryzjer", "Kosmetyczka", "Przedsiębiorca", "Komornik"]
 
-try:
-    X_train, y_train = load_data('data/inout/xy_t.csv', len(job))
-except:
-    np.random.seed(42)
-    X_train = np.random.rand(20, 25)
-    y_indices = np.random.randint(0, len(job), size=20)
-    y_train = to_one_hot(y_indices, len(job))
+# Lazy loading - model będzie załadowany przy pierwszym użyciu
+_model = None
+_X_train = None
+_y_train = None
 
-model = tf.keras.Sequential([
-    tf.keras.layers.Dense(64, input_shape=(25,)),
-    tf.keras.layers.LeakyReLU(alpha=0.01),
-    tf.keras.layers.Dense(32),
-    tf.keras.layers.LeakyReLU(alpha=0.01),
-    tf.keras.layers.Dense(len(job), activation='sigmoid')  # score per job
-])
-try:
-    model.load_weights("data/.weights.h5")
-except:
-    pass
 
-model.compile(optimizer='adam', loss='mse', metrics=['mae'])
-if train:
-    model.fit(X_train, y_train, epochs=5000, batch_size=32, verbose=0)
-    model.save_weights("data/.weights.h5")
+def _get_model():
+    """Lazy load model - tworzy i ładuje model tylko przy pierwszym użyciu."""
+    global _model, _X_train, _y_train
+
+    if _model is not None:
+        return _model
+
+    # Załaduj dane treningowe
+    try:
+        _X_train, _y_train = load_data('data/inout/xy_t.csv', len(job))
+    except:
+        np.random.seed(42)
+        _X_train = np.random.rand(20, 25)
+        y_indices = np.random.randint(0, len(job), size=20)
+        _y_train = to_one_hot(y_indices, len(job))
+
+    # Utwórz model
+    _model = tf.keras.Sequential([
+        tf.keras.layers.Dense(64, input_shape=(25,)),
+        tf.keras.layers.LeakyReLU(alpha=0.01),
+        tf.keras.layers.Dense(32),
+        tf.keras.layers.LeakyReLU(alpha=0.01),
+        tf.keras.layers.Dense(len(job), activation='sigmoid')  # score per job
+    ])
+
+    # Załaduj wagi
+    try:
+        _model.load_weights("data/.weights.h5")
+    except:
+        pass
+
+    _model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+
+    if train:
+        _model.fit(_X_train, _y_train, epochs=5000, batch_size=32, verbose=0)
+        _model.save_weights("data/.weights.h5")
+
+    return _model
 
 
 def recommendations(personality_vector, wpep_mode, job_count):
+    model = _get_model()  # Lazy load model
     scores = model.predict(np.array([personality_vector]))[0]
     top_indices = np.argsort(scores)[-job_count:][::-1]
     recom = [(job[i], scores[i]) for i in top_indices]
