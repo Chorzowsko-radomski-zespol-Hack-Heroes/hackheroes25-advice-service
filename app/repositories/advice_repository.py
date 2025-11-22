@@ -70,6 +70,8 @@ class SupabaseAdviceRepository(AdviceRepository):
             "(category:advice_categories(name))"
         )
 
+        # Nie ładuj embeddings przy get_all() - oszczędność pamięci
+        # Embeddings będą ładowane lazy gdy potrzebne
         base_query = self._client.table(self._TABLE_NAME).select(
             ",".join(
                 [
@@ -81,7 +83,7 @@ class SupabaseAdviceRepository(AdviceRepository):
                     "link",
                     "image_url",
                     "author",
-                    "embedding",
+                    # "embedding",  # Nie ładuj - oszczędność pamięci, będzie lazy loaded
                     category_select,
                 ]
             )
@@ -185,3 +187,20 @@ class EmbeddingUpdatableAdviceRepository(SupabaseAdviceRepository):
             .eq("id", advice_id)
             .execute()
         )
+
+    async def get_embedding(self, advice_id: int) -> Sequence[float] | None:
+        """Pobiera embedding dla konkretnej porady z bazy (lazy loading)."""
+        response = (
+            await self._client.table(self._TABLE_NAME)
+            .select("embedding")
+            .eq("id", advice_id)
+            .limit(1)
+            .execute()
+        )
+        records = response.data or []
+        if not records:
+            return None
+        embedding = records[0].get("embedding")
+        if embedding and isinstance(embedding, list):
+            return embedding
+        return None

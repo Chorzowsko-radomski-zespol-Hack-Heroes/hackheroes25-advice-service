@@ -6,12 +6,16 @@ import logging
 import os
 import random
 import re
+import sys
 import unicodedata
 from collections import Counter, OrderedDict
 from typing import TYPE_CHECKING, Any, Callable, Mapping, Protocol, Sequence, cast
 
 from app.models.advice import Advice, AdviceKind, AdviceRecommendation, AdviceRequestContext
-from app.repositories.advice_repository import AdviceRepository, EmbeddingUpdatableAdviceRepository
+from app.repositories.advice_repository import (
+    AdviceRepository,
+    EmbeddingUpdatableAdviceRepository,
+)
 from app.repositories.category_repository import AdviceCategoryRepository
 from app.integrations.openai import (
     OpenAISettings,
@@ -492,12 +496,22 @@ class PersonaEmbeddingAdviceSelectionPipeline:
 
         self._latest_events: list[str] = []
         # In-memory cache keyed by advice id
-        self._embedding_cache: dict[int, tuple[float, ...]] = {}
+        # Embedding cache z limitem - używa OrderedDict dla LRU eviction
+        self._embedding_cache: OrderedDict[int,
+                                           tuple[float, ...]] = OrderedDict()
+        self._embedding_cache_max_size = int(
+            os.getenv("ADVICE_EMBEDDING_CACHE_SIZE", "20") or 20
+        )
+        # Zmniejszony limit result cache - LLM responses są długie
         self._cache_max_size = int(
-            os.getenv("ADVICE_RESULT_CACHE_SIZE", "20") or 0)
+            os.getenv("ADVICE_RESULT_CACHE_SIZE", "5") or 5)
         self._result_cache: OrderedDict[
             tuple[str, str], AdviceRecommendation
         ] = OrderedDict()
+        # Limit liczby porad przetwarzanych jednocześnie (dla oszczędności pamięci)
+        self._max_candidates_to_process = int(
+            os.getenv("ADVICE_MAX_CANDIDATES", "20") or 20
+        )
 
         if hasattr(self._response_generator, "set_log_sink"):
             try:
@@ -601,6 +615,22 @@ class PersonaEmbeddingAdviceSelectionPipeline:
                 f"Rozpoznano łącznie {len(candidates)} porad w katalogu (bez filtrowania po kategoriach)."
             )
 
+        # Ograniczenie liczby kandydatów dla oszczędności pamięci
+        original_count = len(candidates)
+        if len(candidates) > self._max_candidates_to_process:
+            candidates = list(candidates)[:self._max_candidates_to_process]
+            self._record(
+                f"Ograniczono liczbę kandydatów z {original_count} do {len(candidates)} "
+                f"(limit: {self._max_candidates_to_process}) dla oszczędności pamięci."
+            )
+
+        # Monitoring pamięci przed przetwarzaniem
+        cache_size = len(self._embedding_cache)
+        self._record(
+            f"📊 Pamięć: embedding_cache={cache_size}/{self._embedding_cache_max_size}, "
+            f"kandydaci={len(candidates)}"
+        )
+
         # 4. Ensure advice embeddings exist (lazy cache + Supabase update)
         similarities: list[tuple[Advice, float]] = []
         for advice in candidates:
@@ -621,6 +651,14 @@ class PersonaEmbeddingAdviceSelectionPipeline:
                 query_embedding, vector
             )
             similarities.append((advice, score))
+
+        # Monitoring pamięci po przetworzeniu embeddings
+        final_cache_size = len(self._embedding_cache)
+        if final_cache_size != cache_size:
+            self._record(
+                f"📊 Pamięć po przetworzeniu: embedding_cache={final_cache_size}/{self._embedding_cache_max_size} "
+                f"(dodano {final_cache_size - cache_size} embeddings)"
+            )
 
         if not similarities:
             self._record(
@@ -737,14 +775,33 @@ class PersonaEmbeddingAdviceSelectionPipeline:
         self, advice: Advice
     ) -> tuple[float, ...]:
         assert advice.id is not None
+        # Sprawdź cache (z LRU - przenieś na koniec jeśli istnieje)
         if advice.id in self._embedding_cache:
-            return self._embedding_cache[advice.id]
-
-        # If Supabase already has an embedding, reuse it and cache locally
-        if advice.embedding:
-            vector = tuple(float(x) for x in advice.embedding)
+            # Przenieś na koniec (najnowsze użycie) dla LRU
+            vector = self._embedding_cache.pop(advice.id)
             self._embedding_cache[advice.id] = vector
             return vector
+
+        # If Supabase already has an embedding in the object, reuse it and cache locally
+        if advice.embedding:
+            vector = tuple(float(x) for x in advice.embedding)
+            # Dodaj do cache z LRU eviction
+            self._add_to_embedding_cache(advice.id, vector)
+            return vector
+
+        # Lazy load embedding z bazy (jeśli nie było w obiekcie Advice)
+        if isinstance(self._advice_repository, EmbeddingUpdatableAdviceRepository):
+            try:
+                db_embedding = await self._advice_repository.get_embedding(advice.id)
+                if db_embedding:
+                    vector = tuple(float(x) for x in db_embedding)
+                    # Dodaj do cache z LRU eviction
+                    self._add_to_embedding_cache(advice.id, vector)
+                    return vector
+            except Exception as exc:
+                self._record(
+                    f"Błąd pobierania embeddingu z bazy dla porady '{advice.name}': {exc}"
+                )
 
         # Jeśli porada nie ma opisu w bazie, na razie ją pomijamy
         description = advice.description or ""
@@ -754,6 +811,7 @@ class PersonaEmbeddingAdviceSelectionPipeline:
             )
             return ()
 
+        # Generuj nowy embedding
         text = f"Rodzaj: {advice.kind.value}\n{description}"
         try:
             response = await self._client.embeddings.create(
@@ -768,18 +826,37 @@ class PersonaEmbeddingAdviceSelectionPipeline:
             return ()
 
         # Persist in Supabase as cache
-        try:
-            await self._advice_repository.update_embedding(advice.id, embedding)
-            self._record(
-                f"Zapisano embedding w bazie dla porady '{advice.name}' (id={advice.id})."
-            )
-        except Exception as exc:  # pragma: no cover - defensive DB layer
-            self._record(
-                f"Nie udało się zapisać embeddingu w bazie dla porady '{advice.name}': {exc}"
-            )
+        if isinstance(self._advice_repository, EmbeddingUpdatableAdviceRepository):
+            try:
+                await self._advice_repository.update_embedding(advice.id, embedding)
+                self._record(
+                    f"Zapisano embedding w bazie dla porady '{advice.name}' (id={advice.id})."
+                )
+            except Exception as exc:  # pragma: no cover - defensive DB layer
+                self._record(
+                    f"Nie udało się zapisać embeddingu w bazie dla porady '{advice.name}': {exc}"
+                )
 
-        self._embedding_cache[advice.id] = embedding
+        # Dodaj do cache z LRU eviction
+        self._add_to_embedding_cache(advice.id, embedding)
         return embedding
+
+    def _add_to_embedding_cache(self, advice_id: int, embedding: tuple[float, ...]) -> None:
+        """Dodaje embedding do cache z LRU eviction jeśli przekroczony limit."""
+        # Jeśli już istnieje, usuń żeby przenieść na koniec
+        if advice_id in self._embedding_cache:
+            self._embedding_cache.pop(advice_id)
+
+        # Dodaj na koniec (najnowsze)
+        self._embedding_cache[advice_id] = embedding
+
+        # LRU eviction: usuń najstarsze jeśli przekroczony limit
+        while len(self._embedding_cache) > self._embedding_cache_max_size:
+            oldest_key = next(iter(self._embedding_cache))
+            self._embedding_cache.pop(oldest_key)
+            self._record(
+                f"Usunięto najstarszy embedding z cache (id={oldest_key}, cache_size={len(self._embedding_cache)})"
+            )
 
     async def _embed_text(self, text: str) -> tuple[float, ...]:
         try:
