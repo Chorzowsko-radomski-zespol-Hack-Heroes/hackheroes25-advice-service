@@ -21,17 +21,17 @@ handlers = ['http']
 port = 443
 handlers = ['tls', 'http']
 
-[[services.http_checks]]
-interval = '15s'
-timeout = '5s'
-grace_period = '180s'
-method = 'GET'
-path = '/health'
+# [[services.http_checks]]
+# interval = '15s'
+# timeout = '5s'
+# grace_period = '180s'
+# method = 'GET'
+# path = '/health'
 
-[[services.tcp_checks]]
-interval = '15s'
-timeout = '5s'
-grace_period = '180s'
+# [[services.tcp_checks]]
+# interval = '15s'
+# timeout = '5s'
+# grace_period = '180s'
 
 [[vm]]
 memory = 256
