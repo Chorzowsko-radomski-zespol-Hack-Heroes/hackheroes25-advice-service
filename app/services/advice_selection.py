@@ -21,6 +21,7 @@ from app.integrations.openai import (
     OpenAISettings,
     create_async_openai_client,
     get_openai_settings,
+    get_reasoning_effort,
 )
 from app.repositories.user_persona_repository import UserPersonaProvider
 
@@ -1055,8 +1056,7 @@ class LLMAdviceResponseGenerator(AdviceResponseGenerator):
         self._client = runtime_client
         self._model = model or os.getenv(
             "OPENAI_RESPONSE_MODEL") or "gpt-5-mini"
-        self._reasoning_effort = os.getenv(
-            "OPENAI_REASONING_EFFORT", "low") or "low"
+        self._reasoning_effort = get_reasoning_effort()
         self._log_sink: Callable[[str], None] | None = None
 
     def set_log_sink(self, sink: Callable[[str], None]) -> None:
@@ -1137,19 +1137,37 @@ class LLMAdviceResponseGenerator(AdviceResponseGenerator):
         self._log(f"📝 Utworzono user prompt ({len(user_prompt)} znaków)")
 
         try:
+            import time
+            start_time = time.time()
             self._log(f"🔄 Wysyłam zapytanie do OpenAI (model: {self._model})")
-            response = await self._client.chat.completions.create(
-                model=self._model,
-                messages=[
+            request_start = time.time()
+            create_kwargs: dict[str, Any] = {
+                "model": self._model,
+                "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
-            )
+                "stream": False,  # Explicitly disable streaming
+            }
+            # Dodaj reasoning_effort tylko jeśli jest ustawione (dla modeli z reasoning)
+            if self._reasoning_effort is not None:
+                create_kwargs["reasoning_effort"] = self._reasoning_effort
+            response = await self._client.chat.completions.create(**create_kwargs)
+            request_end = time.time()
+            self._log(
+                f"⏱️ OpenAI API odpowiedział w {request_end - request_start:.2f}s")
+
+            parse_start = time.time()
             completion_text = response.choices[0].message.content
+            parse_end = time.time()
+            self._log(
+                f"⏱️ Parsowanie odpowiedzi zajęło {parse_end - parse_start:.4f}s")
+
             if completion_text:
                 completion_text = completion_text.strip()
+                total_time = time.time() - start_time
                 self._log(
-                    f"✅ Odpowiedź LLM wygenerowana pomyślnie ({len(completion_text)} znaków)")
+                    f"✅ Odpowiedź LLM wygenerowana pomyślnie ({len(completion_text)} znaków) w {total_time:.2f}s")
                 return completion_text
             else:
                 self._log("⚠️ LLM nie zwrócił treści – używam fallbacku")

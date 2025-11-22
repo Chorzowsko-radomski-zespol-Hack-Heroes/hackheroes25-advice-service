@@ -3,9 +3,10 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Final
+from typing import Final, cast
 
 from openai import AsyncOpenAI
+from openai.types.shared.reasoning_effort import ReasoningEffort
 
 DEFAULT_MODEL: Final[str] = "text-embedding-3-small"
 
@@ -42,10 +43,27 @@ def get_openai_settings() -> OpenAISettings:
     return OpenAISettings.from_env()
 
 
+def get_reasoning_effort() -> ReasoningEffort | None:
+    """
+    Pobiera i waliduje reasoning_effort z zmiennej środowiskowej.
+    Zwraca None, jeśli parametr nie powinien być używany (dla modeli bez reasoning).
+    """
+    reasoning_effort_str = os.getenv("OPENAI_REASONING_EFFORT", "low") or "low"
+    valid_efforts: tuple[ReasoningEffort, ...] = (
+        "minimal", "low", "medium", "high")
+    if reasoning_effort_str not in valid_efforts:
+        reasoning_effort_str = "low"
+    return cast(ReasoningEffort, reasoning_effort_str)
+
+
 def create_async_openai_client(settings: OpenAISettings | None = None) -> AsyncOpenAI:
     settings = settings or get_openai_settings()
+    # Timeout: 10s connect, 60s read, 600s total
+    from httpx import Timeout
+    timeout = Timeout(10.0, read=60.0, write=10.0, connect=10.0, pool=10.0)
     return AsyncOpenAI(
         api_key=settings.api_key,
         organization=settings.organization,
         project=settings.project,
+        timeout=timeout,
     )

@@ -4,10 +4,14 @@ import asyncio
 import math
 import re
 from collections import defaultdict
-from typing import Any, Mapping, Sequence, cast
+from typing import Any, Literal, Mapping, Sequence, cast
 import os
 
-from app.integrations.openai import create_async_openai_client, get_openai_settings
+from app.integrations.openai import (
+    create_async_openai_client,
+    get_openai_settings,
+    get_reasoning_effort,
+)
 from app.integrations.supabase import create_supabase_async_client
 from app.models.tests import (
     PSYCHO_TRAITS,
@@ -381,41 +385,53 @@ class PersonaNarrativeGenerator:
         self._model = model or os.getenv(
             "OPENAI_RESPONSE_MODEL") or "gpt-5-mini"
         self._persona_repository = persona_repository
-        self._reasoning_effort = os.getenv(
-            "OPENAI_REASONING_EFFORT", "low") or "low"
+        self._reasoning_effort = get_reasoning_effort()
 
     async def generate_and_store(
         self,
         user_id: str,
         psychology_traits: Mapping[str, float],
         vocation_traits: Mapping[str, float],
-        highlights: Sequence[str],
+        psychology_open_answers: Sequence[str],
+        vocation_open_answers: Sequence[str],
     ) -> str:
         system_prompt = (
-            "You are a supportive career coach. Summarize the user's personality and "
-            "vocational traits in exactly ten sentences. Focus on strengths, growth opportunities, "
-            "and how those traits align with potential life choices."
+            "Jesteś specjalistą psychologicznym i doradcą zawodowym. Stwórz opis użytkownika z uwzględnieniem cech praktyczno-zawodowych"
+            "w 10 zdaniach. Wykorzystaj: wyniki testów (bez liczb konkretnych i bez wspominania o teście samym w sobie), odpowiedzi na pytania otwarte z obu testów."
+            "Opisz konkretne zachowania, preferencje, umiejętności i wzorce myślenia, ale nic sam nie wymyślaj. Lepiej pisz mniej niż więcej."
         )
         summary_lines = [
-            "Psychological traits:",
+            "Cechy psychologiczne:",
             _top_trait_summary(psychology_traits),
-            "Vocational preferences:",
+            "Cechy zawodowe:",
             _top_trait_summary(vocation_traits),
-            "User highlights:",
-            "; ".join(
-                highlights) if highlights else "brak dodatkowych wypowiedzi",
+            "",
+            "Odpowiedzi na pytania otwarte z testu psychologicznego:",
+            f"• Co brakuje do pełni szczęścia: {psychology_open_answers[0] if len(psychology_open_answers) > 0 else 'brak odpowiedzi'}",
+            f"• Wymarzony partner życiowy: {psychology_open_answers[1] if len(psychology_open_answers) > 1 else 'brak odpowiedzi'}",
+            f"• Wymarzony dzień: {psychology_open_answers[2] if len(psychology_open_answers) > 2 else 'brak odpowiedzi'}",
+            f"• Największe lęki w życiu: {psychology_open_answers[3] if len(psychology_open_answers) > 3 else 'brak odpowiedzi'}",
+            "",
+            "Odpowiedzi na pytania otwarte z testu zawodowego:",
+            f"• Sytuacja z pracy, która dała największą satysfakcję: {vocation_open_answers[0] if len(vocation_open_answers) > 0 else 'brak odpowiedzi'}",
+            f"• Umiejętności lub wiedza do rozwoju w karierze: {vocation_open_answers[1] if len(vocation_open_answers) > 1 else 'brak odpowiedzi'}",
+            f"• Czego unikasz lub czego się obawiasz w pracy: {vocation_open_answers[2] if len(vocation_open_answers) > 2 else 'brak odpowiedzi'}",
+            f"• Wpływ pracy na życie prywatne i idealny balans: {vocation_open_answers[3] if len(vocation_open_answers) > 3 else 'brak odpowiedzi'}",
         ]
         user_prompt = "\n".join(summary_lines)
         try:
-            response = await self._client.responses.create(
-                model=self._model,
-                input=[
+            create_kwargs: dict[str, Any] = {
+                "model": self._model,
+                "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
-                reasoning=cast(Any, {"effort": self._reasoning_effort}),
-            )
-            persona_text = getattr(response, "output_text", None) or ""
+            }
+            # Dodaj reasoning_effort tylko jeśli jest ustawione (dla modeli z reasoning)
+            if self._reasoning_effort is not None:
+                create_kwargs["reasoning_effort"] = self._reasoning_effort
+            response = await self._client.chat.completions.create(**create_kwargs)
+            persona_text = response.choices[0].message.content or ""
             persona_text = persona_text.strip()
             persona_text = _enforce_sentence_count(persona_text, 10)
         except Exception:
@@ -439,11 +455,10 @@ class PersonaNarrativeGenerator:
         highlights: Sequence[str],
     ) -> str:
         system_prompt = (
-            "Jesteś specjalistą psychologicznym. Stwórz szczegółowy profil psychologiczny użytkownika "
-            "w dokładnie dziesięciu zdaniach. Wykorzystaj wszystkie dostępne dane: wyniki testów (bez liczb konkretnych i bez wspominania o teście samym w sobie), odpowiedzi na pytania otwarte "
-            "(co brakuje do szczęścia, wymarzony partner, wymarzony dzień, największe lęki) oraz kontekst tych pytań. "
-            "Opisz konkretne zachowania, preferencje i wzorce myślenia. Podaj praktyczne wskazówki rozwoju. "
-            "Nie używaj zwrotów typu 'użytkownik' - pisz obiektywnie o osobowości."
+            "Jesteś specjalistą psychologicznym. Stwórz profil psychologiczny użytkownika"
+            "w 6 zdaniach. Wykorzystaj: wyniki testów (bez liczb konkretnych i bez wspominania o teście samym w sobie), odpowiedzi na pytania otwarte "
+            "(co brakuje do szczęścia, wymarzony partner, wymarzony dzień, największe lęki). "
+            "Opisz konkretne zachowania, preferencje i wzorce myślenia, ale nic sam nie wymyślaj. Lepiej pisz mniej niż więcej."
         )
         summary_lines = [
             "Cechy psychologiczne:",
@@ -457,17 +472,20 @@ class PersonaNarrativeGenerator:
         ]
         user_prompt = "\n".join(summary_lines)
         try:
-            response = await self._client.responses.create(
-                model=self._model,
-                input=[
+            create_kwargs: dict[str, Any] = {
+                "model": self._model,
+                "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
-                reasoning=cast(Any, {"effort": self._reasoning_effort}),
-            )
-            persona_text = getattr(response, "output_text", None) or ""
+            }
+            # Dodaj reasoning_effort tylko jeśli jest ustawione (dla modeli z reasoning)
+            if self._reasoning_effort is not None:
+                create_kwargs["reasoning_effort"] = self._reasoning_effort
+            response = await self._client.chat.completions.create(**create_kwargs)
+            persona_text = response.choices[0].message.content or ""
             persona_text = persona_text.strip()
-            persona_text = _enforce_sentence_count(persona_text, 10)
+            persona_text = _enforce_sentence_count(persona_text, 6)
         except Exception as e:
             # logger.warning(f"Failed to generate psychology persona: {e}")
             # Fallback persona
@@ -477,11 +495,7 @@ class PersonaNarrativeGenerator:
                 "Wysoka motywacja do rozwoju osobistego przejawia się w systematycznym dążeniu do samodoskonalenia. "
                 "Silne umiejętności emocjonalne umożliwiają nawiązywanie głębokich i autentycznych relacji interpersonalnych. "
                 "Kreatywność wyraża się w poszukiwaniu innowacyjnych rozwiązań i nietypowych perspektyw na problemy. "
-                "Sumienność pozwala na konsekwentne realizowanie długoterminowych celów i zobowiązań. "
-                "Tendencja do samokrytycyzmu może być przekształcona w konstruktywną samoocenę poprzez praktyki uważności. "
-                "Potencjał przywódczy ujawnia się w sytuacjach wymagających koordynacji grupowej i inspirowania innych. "
-                "Stabilność emocjonalna stanowi solidną podstawę do radzenia sobie ze stresem i wyzwaniami życiowymi. "
-                "Praktyczne wskazówki rozwoju obejmują regularne ćwiczenia mindfulness i budowanie świadomości emocjonalnej."
+                "Sumienność pozwala na konsekwentne realizowanie długoterminowych celów i zobowiązań."
             )
 
         await self._persona_repository.save_persona(
@@ -679,11 +693,21 @@ class TestProcessingService:
         psychology_traits = await self._repository.get_traits(
             payload.user_id, "psychology"
         )
+        # Pobierz odpowiedzi otwarte z testu psychologicznego
+        psychology_results = await self._repository.get_psychology_test_results(
+            payload.user_id
+        )
+        psychology_open_answers = (
+            psychology_results.get("open_answers", [])
+            if psychology_results
+            else []
+        )
         persona_text = await self._persona_generator.generate_and_store(
             payload.user_id,
             psychology_traits or {},
             merged,
-            payload.open_answers,
+            psychology_open_answers,
+            payload.open_answers,  # Odpowiedzi z testu vocational
         )
         return TestSubmissionResponse(
             message="Zapisano wyniki testu zawodowego.",
