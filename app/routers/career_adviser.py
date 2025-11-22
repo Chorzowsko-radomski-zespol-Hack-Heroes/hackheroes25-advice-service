@@ -69,8 +69,6 @@ async def get_career_adviser(
     scores = [float(s) for s in scores]
     logger.info("Career advice generated for user_id=%s: top_job=%s score=%.2f",
                 user_id, jobs[0] if jobs else "N/A", scores[0] if scores else 0.0)
-    best_job = sorted(zip(jobs, scores), key=lambda x: x[1], reverse=True)[
-        0]
-    # sort jobs by scores and return the best one
+    best_job = jobs[0]
 
     return {"user_id": user_id, "jobs": jobs, "scores": scores, "best_job": best_job}
