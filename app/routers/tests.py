@@ -75,6 +75,6 @@ async def get_vocational_test_results(
     results = await service.get_vocational_test_results(user_id)
     if not results:
         raise HTTPException(
-            status_code=404, detail=f"No vocational test results found for user_id: {user_id}"
+            status_code=404, detail=f"Test not found"
         )
     return VocationalTestResultsResponse(**results)
