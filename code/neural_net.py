@@ -72,17 +72,18 @@ def recommendations(personality_vector, wpep_mode, job_count):
     top_indices = np.argsort(scores)[-job_count:][::-1]
     recom = [(job[i], scores[i]) for i in top_indices]
     trecom = transpose(recom)
-    outscores = trecom[1]
-    if wpep_mode != 0:
+    outscores = np.array(trecom[1])
+
+    if wpep_mode == 0:
+        nincome = np.ones(len(top_indices))   # <-- jedyna zmiana
+    else:
         if wpep_mode == 1:
             income = np.loadtxt("data/inout/wpep.csv", delimiter=',')
         if wpep_mode == 2:
             income = np.loadtxt("data/inout/wpep5years.csv", delimiter=',')
         tincome = [income[i] for i in top_indices]
         nincome = normalise(np.array(tincome))
-        out = outscores-(1-nincome)
-        nout = normalise(out)
-        return trecom[0], nout
-    else:
-        trecoma = normalise(trecom[1])
-        return trecom[0], trecoma
+
+    out = outscores - (1 - nincome)
+    nout = normalise(out)
+    return trecom[0], nout
