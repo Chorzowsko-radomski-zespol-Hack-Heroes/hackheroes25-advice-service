@@ -21,20 +21,15 @@ logging.basicConfig(
 
 app = FastAPI(title="Advice API")
 
-# Niestandardowe middleware dla zezwalania na każdy localhost z dowolnym portem
-class AllowAnyLocalhostMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        origin = request.headers.get("Origin")
-        if origin and re.match(r"^http://localhost(:\d+)?$", origin):
-            response = await call_next(request)
-            response.headers["Access-Control-Allow-Origin"] = origin
-            response.headers["Access-Control-Allow-Methods"] = "*"
-            response.headers["Access-Control-Allow-Headers"] = "*"
-            return response
-        return await call_next(request)
-
-# Dodaj niestandardowe middleware
-app.add_middleware(AllowAnyLocalhostMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$",  # any port, forever
+    allow_methods=["*"],
+    allow_headers=["*"],
+    allow_credentials=True,
+    expose_headers=["*"],
+    max_age=600,
+)
 
 app.include_router(advice_router)
 app.include_router(tests_router)
