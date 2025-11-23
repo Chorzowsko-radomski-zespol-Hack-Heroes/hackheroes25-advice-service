@@ -69,9 +69,9 @@ def recommendations(personality_vector, wpep_mode, job_count):
     outscores=trecom[1]
     if wpep_mode!=0:
         if wpep_mode==1:
-            income=np.loadtxt("/home/dave/hh/data/inout/wpep.csv", delimiter=',')
+            income=np.loadtxt("data/inout/wpep.csv", delimiter=',')
         if wpep_mode==2:
-            income=np.loadtxt("/home/dave/hh/data/inout/wpep5years.csv", delimiter=',')
+            income=np.loadtxt("data/inout/wpep5years.csv", delimiter=',')
         tincome=[income[i] for i in top_indices]
         nincome=normalise(np.array(tincome))
         out=outscores-(1-nincome)
