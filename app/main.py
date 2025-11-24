@@ -15,7 +15,7 @@ from app.routers.personas import router as personas_router
 from app.routers.career_adviser import router as career_adviser_router
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 
@@ -23,7 +23,8 @@ app = FastAPI(title="Advice API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$",  # any port, forever
+    # any port, forever
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$",
     allow_methods=["*"],
     allow_headers=["*"],
     allow_credentials=True,
@@ -37,9 +38,11 @@ app.include_router(personas_router)
 app.include_router(career_adviser_router)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+
 @app.get("/")
 def root():
     return FileResponse("static/index.html")
+
 
 @app.get("/health")
 def health_check():

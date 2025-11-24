@@ -67,8 +67,9 @@ async def get_career_adviser(
 
     jobs, scores = get_jobs(pers_input, wpep_mode, 5)
     scores = [float(s) for s in scores]
-    logger.info("Career advice generated for user_id=%s: top_job=%s score=%.2f",
-                user_id, jobs[0] if jobs else "N/A", scores[0] if scores else 0.0)
-    best_job = jobs[0]
 
-    return {"user_id": user_id, "jobs": jobs, "scores": scores, "best_job": best_job}
+    # LOG: pełne score’y
+    for j, s in zip(jobs, scores):
+        logger.debug("TOP score: %s -> %.4f", j, s)
+
+    return {"user_id": user_id, "jobs": jobs, "scores": scores, "best_job": jobs[0]}
