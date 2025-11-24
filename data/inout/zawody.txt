@@ -2,60 +2,60 @@ Strażak,8
 Policjant,8
 Ratownik medyczny,9
 Żołnierz,7
-Data scientist,7
-Data analyst,8
-Business analyst,7
-Specjalista ds cyberbezpieczeństwa,9
-Programista,8
-Statystyk,6
-Matematyk,5
-Fizyk,4
-Kierownik projektu,7
-Grafik komputerowy,5
-Projektant UI/UX,6
+Data scientist,6
+Data analyst,7
+Business analyst,6
+Specjalista ds cyberbezpieczeństwa,8
+Programista,6
+Statystyk,5
+Matematyk,4
+Fizyk,3
+Kierownik projektu,6
+Grafik komputerowy,4
+Projektant UI/UX,5
 Pracownik HR,6
-Konsultant IT,7
-Tester oprogramowania,6
+Konsultant IT,6
+Tester oprogramowania,4
 Trener personalny,6
 Ogrodnik,5
-Lekarz,10
-Weterynarz,6
+Lekarz,9
+Weterynarz,5
 Farmaceuta,6
-Stomatolog,5
+Stomatolog,4
 Pielęgniarka,9
 Fizjoterapeuta,8
-Psycholog,9
-Psychiatra,10
-Coach,5
+Psycholog,8
+Psychiatra,9
+Coach,4
 Hydraulik,8
 Stolarz,7
 Mechanik,8
 Elektryk,9
-Kierownik magazynu,7
+Kierownik magazynu,6
 Operator maszyn,6
-Projektant wnętrz,6
-Urbanista,5
+Projektant wnętrz,5
+Urbanista,4
 Kucharz,8
-Kelner,6
+Kelner,5
 Reżyser,2
 Aktor,3
 Muzyk,3
 Fotograf,4
 Pisarz,2
-Architekt,6
-Montażysta wideo,5
-Realizator dźwięku,4
+Architekt,5
+Montażysta wideo,4
+Realizator dźwięku,3
 Kierownik sklepu,6
-Przedstawiciel handlowy,7
-Specjalista ds marketingu,7
+Przedstawiciel handlowy,6
+Specjalista ds marketingu,6
 Specjalista ds social mediów,6
 Tłumacz,4
-Doradca_podatkowy,7
-Prawnik,6
+Doradca_podatkowy,6
+Prawnik,5
 Dziennikarz,4
-Analityk finansowy,7
-Księgowy,8
-Agent ubezpieczeniowy,5
+Analityk finansowy,6
+Księgowy,7
+Agent ubezpieczeniowy,4
 Pracownik biura podróży,4
 Pilot samolotu,6
 Maszynista,7

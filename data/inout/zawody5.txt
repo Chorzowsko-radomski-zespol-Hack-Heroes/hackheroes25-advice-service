@@ -2,31 +2,31 @@ Strażak,8
 Policjant,8
 Ratownik medyczny,9
 Żołnierz,8
-Data scientist,9
-Data analyst,8
-Business analyst,8
-Specjalista ds cyberbezpieczeństwa,10
-Programista,8
-Statystyk,7
-Matematyk,6
-Fizyk,4
-Kierownik projektu,8
-Grafik komputerowy,4
-Projektant UI/UX,7
+Data scientist,7
+Data analyst,7
+Business analyst,7
+Specjalista ds cyberbezpieczeństwa,9
+Programista,6
+Statystyk,6
+Matematyk,5
+Fizyk,3
+Kierownik projektu,6
+Grafik komputerowy,3
+Projektant UI/UX,6
 Pracownik HR,6
-Konsultant IT,8
-Tester oprogramowania,5
+Konsultant IT,6
+Tester oprogramowania,4
 Trener personalny,6
 Ogrodnik,6
-Lekarz,10
+Lekarz,9
 Weterynarz,6
 Farmaceuta,6
-Stomatolog,5
+Stomatolog,4
 Pielęgniarka,10
 Fizjoterapeuta,9
 Psycholog,9
-Psychiatra,10
-Coach,4
+Psychiatra,9
+Coach,3
 Hydraulik,9
 Stolarz,7
 Mechanik,8
@@ -42,20 +42,20 @@ Aktor,3
 Muzyk,3
 Fotograf,3
 Pisarz,2
-Architekt,7
-Montażysta wideo,5
-Realizator dźwięku,4
+Architekt,5
+Montażysta wideo,4
+Realizator dźwięku,3
 Kierownik sklepu,6
 Przedstawiciel handlowy,7
-Specjalista ds marketingu,7
-Specjalista ds social mediów,5
+Specjalista ds marketingu,6
+Specjalista ds social mediów,6
 Tłumacz,3
 Doradca_podatkowy,7
 Prawnik,6
 Dziennikarz,3
 Analityk finansowy,8
 Księgowy,7
-Agent ubezpieczeniowy,5
+Agent ubezpieczeniowy,4
 Pracownik biura podróży,3
 Pilot samolotu,7
 Maszynista,8
@@ -63,7 +63,7 @@ Kierowca,8
 Logistyk,8
 Nauczyciel,9
 Bibliotekarz,3
-Naukowiec,5
+Naukowiec,4
 Fryzjer,6
 Kosmetyczka,6
 Przedsiębiorca,5
