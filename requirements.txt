@@ -3,4 +3,4 @@ uvicorn[standard]
 supabase
 openai
 numpy
-tensorflow
+tflite-runtime
