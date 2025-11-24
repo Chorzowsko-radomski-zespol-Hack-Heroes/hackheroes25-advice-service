@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import Literal
 
 from fastapi import APIRouter, HTTPException, Query
@@ -24,9 +25,100 @@ def _get_test_repository() -> TestRepository:
     return TestRepository(client)
 
 
+def _map_demand_value_to_level(value: int) -> DemandLevel:
+    """
+    Mapuje wartość popytu (1-10) na poziom popytu.
+
+    Args:
+        value: Wartość popytu z zakresu 1-10
+
+    Returns:
+        Poziom popytu: veryLow, low, medium, high, veryHigh
+    """
+    if value <= 2:
+        return "veryLow"
+    elif value == 3:
+        return "low"
+    elif 4 <= value <= 6:
+        return "medium"
+    elif 7 <= value <= 8:
+        return "high"
+    else:  # 9-10
+        return "veryHigh"
+
+
+def _load_job_demands_from_files() -> dict[str, dict[DemandType, DemandLevel]]:
+    """
+    Ładuje dane popytu zawodów z plików zawody.txt (current) i zawody5.txt (in5years).
+
+    Returns:
+        Słownik z danymi popytu w formacie:
+        {
+            "nazwa_zawodu": {
+                "current": "high",
+                "in5years": "medium"
+            },
+            ...
+        }
+    """
+    base_path = Path(__file__).parent.parent.parent
+    current_file = base_path / "data" / "inout" / "zawody.txt"
+    in5years_file = base_path / "data" / "inout" / "zawody5.txt"
+
+    demands: dict[str, dict[DemandType, DemandLevel]] = {}
+
+    # Wczytaj popyt obecny
+    if current_file.exists():
+        with open(current_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                parts = line.rsplit(",", 1)
+                if len(parts) == 2:
+                    job_name = parts[0].strip()
+                    try:
+                        value = int(parts[1].strip())
+                        level = _map_demand_value_to_level(value)
+                        if job_name not in demands:
+                            demands[job_name] = {}
+                        demands[job_name]["current"] = level
+                    except ValueError:
+                        logger.warning(
+                            "Invalid demand value in zawody.txt: %s", line)
+    else:
+        logger.warning("File not found: %s", current_file)
+
+    # Wczytaj popyt za 5 lat
+    if in5years_file.exists():
+        with open(in5years_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                parts = line.rsplit(",", 1)
+                if len(parts) == 2:
+                    job_name = parts[0].strip()
+                    try:
+                        value = int(parts[1].strip())
+                        level = _map_demand_value_to_level(value)
+                        if job_name not in demands:
+                            demands[job_name] = {}
+                        demands[job_name]["in5years"] = level
+                    except ValueError:
+                        logger.warning(
+                            "Invalid demand value in zawody5.txt: %s", line)
+    else:
+        logger.warning("File not found: %s", in5years_file)
+
+    logger.info("Loaded demand data for %d jobs", len(demands))
+    return demands
+
+
 def _get_job_demand_repository() -> JobDemandRepository:
-    """Tworzy repozytorium popytu zawodów z prostą mapą in-memory."""
-    return InMemoryJobDemandRepository()
+    """Tworzy repozytorium popytu zawodów z prostą mapą in-memory, wczytując dane z plików."""
+    demands = _load_job_demands_from_files()
+    return InMemoryJobDemandRepository(job_demands=demands)
 
 
 def _is_demand_at_least_high(demand_level: DemandLevel | None) -> bool:
