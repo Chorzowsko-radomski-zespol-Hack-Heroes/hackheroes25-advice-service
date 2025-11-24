@@ -1,4 +1,5 @@
 import numpy as np
+from pathlib import Path
 
 try:
     # Próbuj użyć tflite_runtime (lżejsza wersja, tylko do inferencji)
@@ -32,8 +33,23 @@ def transpose(matrix):
     return list(map(list, zip(*matrix)))
 
 
+def _get_model_path() -> str:
+    """Zwraca bezwzględną ścieżkę do modelu tflite."""
+    base_path = Path(__file__).parent.parent
+    model_path = base_path / "data" / "model.tflite"
+    return str(model_path)
+
+
+def _get_data_path(filename: str) -> str:
+    """Zwraca bezwzględną ścieżkę do pliku danych."""
+    base_path = Path(__file__).parent.parent
+    data_path = base_path / "data" / "inout" / filename
+    return str(data_path)
+
+
 def recommendations_tflite(personality_vector, wpep_mode, job_count):
-    interpreter = Interpreter(model_path="data/model.tflite")
+    model_path = _get_model_path()
+    interpreter = Interpreter(model_path=model_path)
     interpreter.allocate_tensors()
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
@@ -51,16 +67,15 @@ def recommendations_tflite(personality_vector, wpep_mode, job_count):
         nincome = np.ones(len(top_indices))
     else:
         if wpep_mode == 1:
-            income = np.loadtxt("data/inout/wpep.csv", delimiter=',')
-        if wpep_mode == 2:
-            income = np.loadtxt("data/inout/wpep5years.csv", delimiter=',')
+            income = np.loadtxt(_get_data_path("wpep.csv"), delimiter=',')
+        elif wpep_mode == 2:
+            income = np.loadtxt(_get_data_path(
+                "wpep5years.csv"), delimiter=',')
+        else:
+            # Fallback dla nieoczekiwanych wartości wpep_mode
+            income = np.loadtxt(_get_data_path("wpep.csv"), delimiter=',')
         tincome = [income[i] for i in top_indices]
         nincome = normalise(np.array(tincome))
     out = outscores-(1-nincome)
     nout = normalise(out)
     return trecom[0], nout
-
-
-personality = np.random.rand(25)
-jobs, scores = recommendations_tflite(personality, 1, 5)
-print(list(zip(jobs, scores)))
