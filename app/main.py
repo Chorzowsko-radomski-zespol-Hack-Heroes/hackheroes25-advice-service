@@ -15,7 +15,7 @@ from app.routers.personas import router as personas_router
 from app.routers.career_adviser import router as career_adviser_router
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 

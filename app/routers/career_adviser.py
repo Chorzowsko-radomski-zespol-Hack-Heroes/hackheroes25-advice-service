@@ -37,11 +37,11 @@ async def get_career_adviser(
             status_code=404,
             detail="Brak wyników testu psychologicznego dla tego użytkownika"
         )
-    logger.debug("Psychology traits retrieved: %d traits",
-                 len(psychology_traits))
+    logger.info("Psychology traits retrieved: %d traits",
+                len(psychology_traits))
 
     # Pobierz cechy zawodowe
-    logger.debug("Fetching vocational traits for user_id=%s", user_id)
+    logger.info("Fetching vocational traits for user_id=%s", user_id)
     vocational_traits = await repository.get_traits(user_id, "vocational")
     if not vocational_traits:
         logger.warning(
@@ -50,8 +50,8 @@ async def get_career_adviser(
             status_code=404,
             detail="Brak wyników testu zawodowego dla tego użytkownika"
         )
-    logger.debug("Vocational traits retrieved: %d traits",
-                 len(vocational_traits))
+    logger.info("Vocational traits retrieved: %d traits",
+                len(vocational_traits))
 
     # Przygotuj listę cech w odpowiedniej kolejności: najpierw 8 psychologicznych, potem zawodowe
     psychology_traits_list = [
@@ -62,14 +62,14 @@ async def get_career_adviser(
     ]
 
     pers_input = psychology_traits_list + vocational_traits_list
-    logger.debug("Prepared pers_input with %d psychology traits and %d vocational traits",
-                 len(psychology_traits_list), len(vocational_traits_list))
+    logger.info("Prepared pers_input with %d psychology traits and %d vocational traits",
+                len(psychology_traits_list), len(vocational_traits_list))
 
     jobs, scores = get_jobs(pers_input, wpep_mode, 5)
     scores = [float(s) for s in scores]
 
     # LOG: pełne score’y
     for j, s in zip(jobs, scores):
-        logger.debug("TOP score: %s -> %.4f", j, s)
+        logger.info("TOP score: %s -> %.4f", j, s)
 
     return {"user_id": user_id, "jobs": jobs, "scores": scores, "best_job": jobs[0]}
