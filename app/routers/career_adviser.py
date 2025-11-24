@@ -207,11 +207,22 @@ async def get_career_adviser(
             "scores": scores,
             "absolute_best_job": absolute_best_job,
             "job_with_demand": None,
+            "fits_to_demand": None,
         }
 
     # Filtruj według popytu
     job_demand_repository = _get_job_demand_repository()
     demand_type: DemandType = demand
+
+    # Sprawdzamy wszystkie top 10 zawodów i zbieramy te, które mają popyt >= "high"
+    fits_to_demand: list[str] = []
+    for job in jobs:
+        job_demand = await job_demand_repository.get_demand(job, demand_type)
+        logger.info("Job %s has demand %s (type: %s)",
+                    job, job_demand, demand_type)
+        if _is_demand_at_least_high(job_demand):
+            fits_to_demand.append(job)
+            logger.info("Job %s fits to demand (>= high)", job)
 
     # Bierzemy top 5 zawodów
     top_5_jobs = jobs[:5] if len(jobs) >= 5 else jobs
@@ -221,8 +232,6 @@ async def get_career_adviser(
     job_with_demand: str | None = None
     for job, score in zip(top_5_jobs, top_5_scores):
         job_demand = await job_demand_repository.get_demand(job, demand_type)
-        logger.info("Job %s has demand %s (type: %s)",
-                    job, job_demand, demand_type)
         if _is_demand_at_least_high(job_demand):
             job_with_demand = job
             logger.info("Found job with high demand: %s", job)
@@ -234,4 +243,5 @@ async def get_career_adviser(
         "scores": scores,
         "absolute_best_job": absolute_best_job,
         "job_with_demand": job_with_demand,
+        "fits_to_demand": fits_to_demand,
     }
