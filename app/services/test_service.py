@@ -411,7 +411,7 @@ class PersonaNarrativeGenerator:
     ) -> str:
         system_prompt = (
             "Jesteś specjalistą psychologicznym i doradcą zawodowym. Stwórz opis użytkownika z uwzględnieniem cech praktyczno-zawodowych"
-            "w 10 zdaniach. Wykorzystaj: wyniki testów (bez liczb konkretnych i bez wspominania o teście samym w sobie), odpowiedzi na pytania otwarte z obu testów."
+            "w 3-4 zdaniach. Napisz tylko esencjonalne informacje. Nie przepisuj cech słowo w słowo. Wykorzystaj: wyniki testów (bez liczb konkretnych i bez wspominania o teście samym w sobie) oraz odpowiedzi na pytania otwarte z obu testów."
             "Opisz konkretne zachowania, preferencje, umiejętności i wzorce myślenia, ale nic sam nie wymyślaj. Lepiej pisz mniej niż więcej."
         )
         summary_lines = [
@@ -469,10 +469,9 @@ class PersonaNarrativeGenerator:
         highlights: Sequence[str],
     ) -> str:
         system_prompt = (
-            "Jesteś specjalistą psychologicznym. Stwórz profil psychologiczny użytkownika"
-            "w 6 zdaniach. Wykorzystaj: wyniki testów (bez liczb konkretnych i bez wspominania o teście samym w sobie), odpowiedzi na pytania otwarte "
-            "(co brakuje do szczęścia, wymarzony partner, wymarzony dzień, największe lęki). "
-            "Opisz konkretne zachowania, preferencje i wzorce myślenia, ale nic sam nie wymyślaj. Lepiej pisz mniej niż więcej."
+            "Jesteś specjalistą psychologicznym i doradcą zawodowym. Stwórz profil psychologiczny użytkownika "
+            "w 3-4 zdaniach. Napisz tylko esencjonalne informacje które wnoszą coś do opisania użytkownika. Nie przepisuj cech słowo w słowo. Wykorzystaj: wyniki testów (bez liczb konkretnych i bez wspominania o teście samym w sobie) oraz odpowiedzi na pytania otwarte z obu testów."
+            "Opisz konkretne zachowania, preferencje, umiejętności i wzorce myślenia, ale nic sam nie wymyślaj. Lepiej pisz mniej niż więcej."
         )
         summary_lines = [
             "Cechy psychologiczne:",
