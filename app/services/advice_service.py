@@ -176,7 +176,7 @@ def build_supabase_advice_pipeline() -> SelectionEngine:
         )
         response_generator = EchoAdviceResponseGenerator()
 
-    selection_mode = os.getenv("ADVICE_SELECTION_MODE", "categories").lower()
+    selection_mode = os.getenv("ADVICE_SELECTION_MODE", "embedding").lower()
     if selection_mode == "embedding":
         logger.info(
             "Using PersonaEmbeddingAdviceSelectionPipeline (mode=embedding, model=%s).",
