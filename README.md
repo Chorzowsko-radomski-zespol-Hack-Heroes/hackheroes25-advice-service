@@ -4,6 +4,8 @@ API do rekomendacji porad psychologicznych i doradztwa zawodowego z wykorzystani
 
 **Produkcyjne API znajduje się pod adresem https://hackheroes25-advice.fly.dev.**
 
+Frontend wraz ze zdjęciami i filmikiem z demem, znajduje się [TUTAJ](https://github.com/Alex09ander/Your-Advisor?tab=readme-ov-file)
+
 ## Funkcjonalności
 
 - **Wsparcie psychologiczne dostosowane do użytkownika** - użytkownik przechodzi test, a następnie otrzymuje odpowiedzi dopasowane do jego sytuacji i osobowości. Model AI przeszukuje bazę treści i wybiera te porady, których sens wskazuje na realny związek z problemem zgłoszonym przez użytkownika.
@@ -99,3 +101,5 @@ Pierwsza wersja backendu została przygotowana w dwa tygodnie, co wynika z ogran
 - Zamierzamy wprowadzić możliwość logowania się poprzez Google, a także swój adres mailowy.
 - Będziemy musieli przemyśleć sposób działania aplikacji w chmurze, zabezpieczając się przed ewentualnymi atakami hakerskimi, być może zwiększyć możliwości serwera (aktualnie jest to pojedyncza maszyna Fly z 512MB RAM)
 - Postaramy się wydać naszą aplikację na Google Play i App Store (po ewentualnym dopasowaniu aplikacji na system iOS)
+- Chcemy, by AI znało kontekst całej rozmowy, jak w większości czatbotów. Póki co czatbot nie ma "pamięci". Będziemy nad tym pracować.
+- Stawiamy duży nacisk na UX — chcemy, by aplikacja była lekka w obsłudze i wizualnie na poziomie współczesnych rozwiązań, z którymi młodzi (ale nie tylko młodzi) mają styczność na co dzień.
