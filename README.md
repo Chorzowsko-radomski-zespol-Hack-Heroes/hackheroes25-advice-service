@@ -103,3 +103,5 @@ Pierwsza wersja backendu została przygotowana w dwa tygodnie, co wynika z ogran
 - Postaramy się wydać naszą aplikację na Google Play i App Store (po ewentualnym dopasowaniu aplikacji na system iOS)
 - Chcemy, by AI znało kontekst całej rozmowy, jak w większości czatbotów. Póki co czatbot nie ma "pamięci". Będziemy nad tym pracować.
 - Stawiamy duży nacisk na UX — chcemy, by aplikacja była lekka w obsłudze i wizualnie na poziomie współczesnych rozwiązań, z którymi młodzi (ale nie tylko młodzi) mają styczność na co dzień.
+- Chcemy przenieść pytania testu psychologicznego i zawodowego do chmury — obecna architektura utrudnia zmianę struktury testów.
+- Nie wykluczamy współpracy z podmiotami, które wzięłyby na siebie zadanie opracowania skutecznego testu i służyłyby wsparciem merytorycznym.

@@ -31,26 +31,40 @@ from app.repositories.user_persona_repository import (
 # --- Question configuration ---
 
 PSYCHO_QUESTION_IMPACTS: Sequence[Sequence[TraitImpact]] = (
-    (TraitImpact("ekstrawersja", 1.0),),  # 1
-    (TraitImpact("ekstrawersja", 1.0),),  # 2
-    (TraitImpact("sumienność", 1.0),),  # 3
-    (TraitImpact("sumienność", 1.0, reverse=True),),  # 4
-    (TraitImpact("ugodowość", 1.0),),  # 5
-    (TraitImpact("ugodowość", 1.0, reverse=True),),  # 6
-    (TraitImpact("stabilność_emocjonalna", 1.0, reverse=True),),  # 7
-    (TraitImpact("stabilność_emocjonalna", 1.0),),  # 8
-    (
-        TraitImpact("stabilność_emocjonalna", 0.6),
-        TraitImpact("koncentracja", 0.4),
-    ),  # 9
-    (TraitImpact("kreatywność", 1.0),),  # 10
-    (TraitImpact("kreatywność", 1.0),),  # 11
-    (TraitImpact("myślenie_logiczne", 1.0),),  # 12
-    (TraitImpact("myślenie_logiczne", 1.0, reverse=True),),  # 13
-    (TraitImpact("koncentracja", 1.0, reverse=True),),  # 14
-    (TraitImpact("koncentracja", 1.0, reverse=True),),  # 15
-    (TraitImpact("przywództwo", 1.0),),  # 16
-    (TraitImpact("przywództwo", 1.0),),  # 17
+    # 1. Najlepiej czuję się, gdy wokół mnie jest dużo ludzi
+    (TraitImpact("ekstrawersja", 1.0),),
+    # 2. Na spotkaniach lubię zabierać głos i inicjować rozmowę
+    (TraitImpact("ekstrawersja", 1.0),),
+    # 3. Zwykle planuję zadania z wyprzedzeniem i wcześnie zaczynam pracę
+    (TraitImpact("sumienność", 1.0),),
+    # 4. Nawet gdy mi się nie chce, potrafię dokończyć rozpoczętą pracę
+    (TraitImpact("sumienność", 1.0),),
+    # 5. Często staram się zrozumieć punkt widzenia drugiej osoby, nawet jeśli się nie zgadzam
+    (TraitImpact("ugodowość", 1.0),),
+    # 6. Jestem bezkompromisowy i często walczę o swoje
+    (TraitImpact("ugodowość", 1.0, reverse=True),),
+    # 7. W stresujących sytuacjach zwykle zachowuję spokój
+    (TraitImpact("stabilność_emocjonalna", 1.0),),
+    # 8. Często długo „przeżywam" porażki lub krytykę
+    (TraitImpact("stabilność_emocjonalna", 1.0, reverse=True),),
+    # 9. Często wpadam na nietypowe pomysły lub rozwiązania
+    (TraitImpact("kreatywność", 1.0),),
+    # 10. Lubię tworzyć coś własnego (np. muzykę, grafikę, teksty, projekty)
+    (TraitImpact("kreatywność", 1.0),),
+    # 11. Potrzebuję logicznych argumentów, żeby podjąć jakąś decyzję
+    (TraitImpact("myślenie_logiczne", 1.0),),
+    # 12. Zdarza mi się podejmować ważne decyzje „pod wpływem chwili" lub intuicji
+    (TraitImpact("myślenie_logiczne", 1.0, reverse=True),),
+    # 13. Łatwo się rozpraszam, kiedy pracuję nad jednym zadaniem
+    (TraitImpact("koncentracja", 1.0, reverse=True),),
+    # 14. Zaczynam rzeczy z entuzjazmem, ale trudno mi je dokończyć
+    (TraitImpact("koncentracja", 1.0, reverse=True),),
+    # 15. W grupie często przejmuję inicjatywę i organizuję działania
+    (TraitImpact("przywództwo", 1.0),),
+    # 16. Czuję się komfortowo, kiedy jestem odpowiedzialny za decyzje dotyczące innych ludzi
+    (TraitImpact("przywództwo", 1.0),),
+    # 17. Inni ludzie często proszą mnie o radę lub pomoc w podjęciu decyzji
+    (TraitImpact("przywództwo", 1.0),),
 )
 
 VOCATION_QUESTION_IMPACTS: Sequence[Sequence[TraitImpact]] = (
@@ -60,46 +74,46 @@ VOCATION_QUESTION_IMPACTS: Sequence[Sequence[TraitImpact]] = (
     (TraitImpact("praca_z_ludzmi", 1.0, reverse=True),),
     # 3. Lubię wykonywać drobne naprawy w domu, albo inną pracę manualną
     (TraitImpact("majstrowanie", 1.0),),
-    # 4. Lubię/lubiałem pisać rozprawki w szkole, albo prace naukowe na studiach
-    (TraitImpact("pisanie", 1.0),),
-    # 5. Jestem zaawansowany w ogólnej obsłudze komputera
-    (TraitImpact("obsluga_komputera", 1.0),),
-    # 6. Mam wyczucie estetyki
-    (TraitImpact("sztuka_design", 1.0),),
-    # 7. Lubię wyrażać swoją opinię na dany temat
-    (TraitImpact("pisanie", 1.0),),
-    # 8. Regularnie obcuję ze sztuką (teatr, opera, wystawy i inne)
-    (TraitImpact("sztuka_design", 1.0),),
-    # 9. Umiem myśleć algorytmicznie
-    (TraitImpact("programowanie", 1.0),),
-    # 10. Lubię rozwiązywać złożone problemy
-    (TraitImpact("programowanie", 1.0), TraitImpact("analiza_danych", 0.7),),
-    # 11. Chcę tworzyć coś, z czego będą korzystać inni ludzie
-    (TraitImpact("programowanie", 0.8), TraitImpact("zarzadzanie_projektem", 0.6),),
-    # 12. Szybko uczę się języków obcych
-    (TraitImpact("jezyki_obce", 1.0),),
-    # 13. Jestem sprawny fizycznie
+    # 4. Jestem sprawny fizycznie i nie przeszkadza mi intensywna praca w ruchu
     (TraitImpact("praca_terenowa", 1.0),),
-    # 14. Cenię sobie kontakt z naturą
+    # 5. Wolę pracę na świeżym powietrzu, w otoczeniu natury, niż siedzenie przy biurku
     (TraitImpact("kontakt_z_natura", 1.0),),
+    # 6. Lubię pisać dłuższe teksty (np. rozprawki, artykuły, opowiadania, blogi)
+    (TraitImpact("pisanie", 1.0),),
+    # 7. Lubię wyrażać swoją opinię na dany temat, także publicznie lub na piśmie
+    (TraitImpact("pisanie", 0.7), TraitImpact("wystapienia_publiczne", 0.5),),
+    # 8. Mam wyczucie estetyki i zwracam uwagę na wygląd rzeczy
+    (TraitImpact("sztuka_design", 1.0),),
+    # 9. Regularnie obcuję ze sztuką lub tworzę coś kreatywnego (muzyka, grafika, wideo, rysunek itd.)
+    (TraitImpact("sztuka_design", 1.0),),
+    # 10. Jestem zaawansowany w obsłudze komputera (pakiety biurowe, różne programy, skróty klawiszowe)
+    (TraitImpact("obsluga_komputera", 1.0),),
+    # 11. Umiem myśleć algorytmicznie – rozbijam problemy na małe kroki i układam z nich procedurę
+    (TraitImpact("programowanie", 1.0),),
+    # 12. Lubię pisać kod lub tworzyć własne programy/skrypty, nawet proste (MEGA klucz)
+    (TraitImpact("programowanie", 1.5),),
+    # 13. Często samodzielnie szukam w internecie rozwiązań problemów technicznych/programistycznych i sprawia mi to frajdę (MEGA klucz)
+    (TraitImpact("programowanie", 1.5),),
+    # 14. Dobrze wyciągam wnioski na podstawie danych, liczb lub statystyk
+    (TraitImpact("analiza_danych", 1.0),),
     # 15. Poszukuję pracy która zapewni mi stabilność finansową i bezpieczeństwo
     (TraitImpact("priorytet_stabilnosc", 1.0),),
-    # 16. Wolę pracować zdalnie, z dowolnego miejsca na świecie
-    (TraitImpact("praca_zdalna", 1.0),),
-    # 17. Jestem kiepski w wystąpieniach publicznych i unikam ich jak ognia
-    (TraitImpact("wystapienia_publiczne", 1.0, reverse=True),),
-    # 18. Bardzo cenię sobie aspekt finansowy pracy
-    (TraitImpact("priorytet_pieniadze", 1.0),),
-    # 19. Chcę by praca rozwijała mnie jako człowieka, nawet kosztem mniejszych zarobków lub mniejszej stabilności
+    # 16. Bardzo cenię sobie aspekt finansowy pracy (Kasa+)
+    (TraitImpact("priorytet_pieniadze", 1.3),),
+    # 17. Chcę, by praca rozwijała mnie jako człowieka, nawet kosztem mniejszych zarobków lub mniejszej stabilności
     (TraitImpact("priorytet_rozwoj", 1.0),),
-    # 20. Dobrze wyciągam wnioski na podstawie danych
-    (TraitImpact("analiza_danych", 1.0),),
-    # 21. Interesuję się anatomią człowieka i pracą lekarzy
+    # 18. Wolę pracować zdalnie, z dowolnego miejsca na świecie
+    (TraitImpact("praca_zdalna", 1.0),),
+    # 19. Jestem kiepski w wystąpieniach publicznych i unikam ich, jeśli tylko mogę
+    (TraitImpact("wystapienia_publiczne", 1.0, reverse=True),),
+    # 20. Szybko uczę się języków obcych i sprawia mi to przyjemność
+    (TraitImpact("jezyki_obce", 1.0),),
+    # 21. Łatwo zapamiętuję szczegółowe informacje, kiedy dotyczą zdrowia lub funkcjonowania organizmu
     (TraitImpact("biologia_medycyna", 1.0),),
-    # 22. Mam dobrą pamięć do pojęć
-    (TraitImpact("biologia_medycyna", 0.8), TraitImpact("analiza_danych", 0.6),),
-    # 23. Lubię brać udział w zorganizowanych projektach grupowych, w szkole, na uczelni lub w pracy
-    (TraitImpact("praca_z_ludzmi", 1.0), TraitImpact("zarzadzanie_projektem", 0.7),),
+    # 22. Dobrze radzę sobie w sytuacjach związanych z chorobą, bólem lub stresem innych osób
+    (TraitImpact("biologia_medycyna", 1.0),),
+    # 23. Lubię brać udział w zorganizowanych projektach grupowych (w szkole, na uczelni, w pracy)
+    (TraitImpact("praca_z_ludzmi", 0.8), TraitImpact("zarzadzanie_projektem", 0.7),),
 )
 
 
@@ -136,17 +150,17 @@ VOCATION_TRAIT_DESCRIPTIONS: Mapping[str, str] = {
 
 
 PSYCHO_OPEN_QUESTION_PROMPTS: Sequence[str] = (
-    "Pytanie 18 (psychologia) – Czego brakuje Ci do pełni szczęścia?",
-    "Pytanie 19 (psychologia) – Jaki byłby Twój wymarzony partner życiowy?",
-    "Pytanie 20 (psychologia) – Jak wyglądałby Twój wymarzony dzień?",
-    "Pytanie 21 (psychologia) – Czego w życiu najbardziej się boisz?",
+    "Pytanie 18 (psychologia) – Czego najbardziej brakuje Ci w obecnym życiu, żebyś czuł/czuła się spełniony/a?",
+    "Pytanie 19 (psychologia) – Jaki byłby Twój wymarzony partner życiowy lub idealna relacja z drugą osobą?",
+    "Pytanie 20 (psychologia) – Jak wyglądałby Twój idealny dzień – od poranka do wieczora?",
+    "Pytanie 21 (psychologia) – Czego w życiu najbardziej się obawiasz i dlaczego?",
 )
 
 VOCATION_OPEN_QUESTION_PROMPTS: Sequence[str] = (
-    "Pytanie 24 (zawodowy) – Opisz sytuację z pracy, która dała Ci największą satysfakcję i dlaczego.",
-    "Pytanie 25 (zawodowy) – Jakie umiejętności lub wiedzę chcesz najbardziej rozwijać w karierze?",
+    "Pytanie 24 (zawodowy) – Opisz sytuację z pracy, która dała Ci największą satysfakcję i dlaczego?",
+    "Pytanie 25 (zawodowy) – Jakie umiejętności lub wiedzę chciałbyś/chciałabyś najbardziej rozwijać w swojej karierze?",
     "Pytanie 26 (zawodowy) – Czego najbardziej unikasz lub czego się obawiasz w kontekście pracy zawodowej?",
-    "Pytanie 27 (zawodowy) – Jak praca wpływa na Twoje życie prywatne i jaki balans jest dla Ciebie idealny?",
+    "Pytanie 27 (zawodowy) – Jak praca ma wpływać na Twoje życie prywatne?",
 )
 
 
@@ -407,10 +421,10 @@ class PersonaNarrativeGenerator:
             _top_trait_summary(vocation_traits),
             "",
             "Odpowiedzi na pytania otwarte z testu psychologicznego:",
-            f"• Co brakuje do pełni szczęścia: {psychology_open_answers[0] if len(psychology_open_answers) > 0 else 'brak odpowiedzi'}",
-            f"• Wymarzony partner życiowy: {psychology_open_answers[1] if len(psychology_open_answers) > 1 else 'brak odpowiedzi'}",
-            f"• Wymarzony dzień: {psychology_open_answers[2] if len(psychology_open_answers) > 2 else 'brak odpowiedzi'}",
-            f"• Największe lęki w życiu: {psychology_open_answers[3] if len(psychology_open_answers) > 3 else 'brak odpowiedzi'}",
+            f"• Czego najbardziej brakuje do pełni szczęścia: {psychology_open_answers[0] if len(psychology_open_answers) > 0 else 'brak odpowiedzi'}",
+            f"• Wymarzony partner życiowy lub idealna relacja: {psychology_open_answers[1] if len(psychology_open_answers) > 1 else 'brak odpowiedzi'}",
+            f"• Idealny dzień – od poranka do wieczora: {psychology_open_answers[2] if len(psychology_open_answers) > 2 else 'brak odpowiedzi'}",
+            f"• Czego w życiu najbardziej się obawia: {psychology_open_answers[3] if len(psychology_open_answers) > 3 else 'brak odpowiedzi'}",
             "",
             "Odpowiedzi na pytania otwarte z testu zawodowego:",
             f"• Sytuacja z pracy, która dała największą satysfakcję: {vocation_open_answers[0] if len(vocation_open_answers) > 0 else 'brak odpowiedzi'}",
@@ -465,10 +479,10 @@ class PersonaNarrativeGenerator:
             _top_trait_summary(psychology_traits),
             "",
             "Odpowiedzi na pytania otwarte:",
-            f"• Co brakuje do pełni szczęścia: {highlights[0] if len(highlights) > 0 else 'brak odpowiedzi'}",
-            f"• Wymarzony partner życiowy: {highlights[1] if len(highlights) > 1 else 'brak odpowiedzi'}",
-            f"• Wymarzony dzień: {highlights[2] if len(highlights) > 2 else 'brak odpowiedzi'}",
-            f"• Największe lęki w życiu: {highlights[3] if len(highlights) > 3 else 'brak odpowiedzi'}",
+            f"• Czego najbardziej brakuje do pełni szczęścia: {highlights[0] if len(highlights) > 0 else 'brak odpowiedzi'}",
+            f"• Wymarzony partner życiowy lub idealna relacja: {highlights[1] if len(highlights) > 1 else 'brak odpowiedzi'}",
+            f"• Idealny dzień – od poranka do wieczora: {highlights[2] if len(highlights) > 2 else 'brak odpowiedzi'}",
+            f"• Czego w życiu najbardziej się obawia: {highlights[3] if len(highlights) > 3 else 'brak odpowiedzi'}",
         ]
         user_prompt = "\n".join(summary_lines)
         try:

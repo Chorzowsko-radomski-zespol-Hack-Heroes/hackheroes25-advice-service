@@ -48,28 +48,29 @@ DZIAŁANIE, przynajmniej kilka spraw technicznych:
 Chcę opracować jakiś fajny system, konfigurowalny, który zamieni odpowiedzi na te cechy. Potem chcę też
 
 # Aktualna lista pytań do testu psychologicznego (w nawiasie cecha na którą pytanie wpływa):
-1. Pasuje mi bycie w centrum zainteresowania (Ekstrawersja)
-2. Łatwo dogaduje się z nowymi osobami (Ekstrawersja)
-3. Muszę zaplanować pracę przed jej rozpoczęciem (sumienność)
-4. Mam problem z dotrzymywaniem terminów (sumienność)
-5. W sporze ważniejsze są uczucia, niż dotarcie do prawdy (ugodowość)
-6. Jestem bezkompromisowy i walczę o swoje (ugodowość)
-7. Miewam częste wahania nastroju (stabilność emocjonalna)
-8. Dobrze radzę sobie z emocjami (stabilność emocjonalna)
-9. Nie mam problemu z uzależnieniami (trochę koncentracja, trochę stabilność emocjonalna)
-10. Lubię nieszablonowe rozwiązania (Kreatywność)
-11. Mam predyspozycje do bycia artystą (Kreatywność)
-12. Swoje działania kieruję rozumem i logicznym myśleniem, bardziej niż emocjami (Myślenie logiczne)
-13. Jestem w stanie w coś uwierzyć, dając się swoim emocjom (Myślenie logiczne)
-14. Trudno mi utrzymać uwagę na jednej rzeczy (Koncentracja)
-15. Często zmieniam kierunek działania (Koncentracja)
-16. Grupa często widzi we mnie lidera (Przywództwo)
-17. Uważam, że byłbym dobrym dyrektorem albo przywódcą politycznym (Przywództwo)
+1. Najlepiej czuję się, gdy wokół mnie jest dużo ludzi (Ekstrawersja)
+2. Na spotkaniach lubię zabierać głos i inicjować rozmowę (Ekstrawersja)
+3. Zwykle planuję zadania z wyprzedzeniem i wcześnie zaczynam pracę (sumienność)
+4. Nawet gdy mi się nie chce, potrafię dokończyć rozpoczętą pracę. (sumienność)
+5. Często staram się zrozumieć punkt widzenia drugiej osoby, nawet jeśli się nie zgadzam (ugodowość)
+6. Jestem bezkompromisowy i często walczę o swoje (ugodowość)
+7. W stresujących sytuacjach zwykle zachowuję spokój (stabilność emocjonalna)
+8. Często długo „przeżywam” porażki lub krytykę (stabilność emocjonalna)
+9. Często wpadam na nietypowe pomysły lub rozwiązania. (Kreatywność)
+10. Lubię tworzyć coś własnego (np. muzykę, grafikę, teksty, projekty) (Kreatywność)
+11. Potrzebuję logicznych argumentów, żeby podjąć jakąś decyzję (Myślenie logiczne)
+12. Zdarza mi się podejmować ważne decyzje „pod wpływem chwili” lub intuicji (Myślenie logiczne)
+13. Łatwo się rozpraszam, kiedy pracuję nad jednym zadaniem (Koncentracja)
+14. Zaczynam rzeczy z entuzjazmem, ale trudno mi je dokończyć (Koncentracja)
+15. W grupie często przejmuję inicjatywę i organizuję działania (Przywództwo)
+16. Czuję się komfortowo, kiedy jestem odpowiedzialny za decyzje dotyczące innych ludzi (Przywództwo)
+17. Inni ludzie często proszą mnie o radę lub pomoc w podjęciu decyzji (Przywództwo)
+
 ### Pytania otwarte
-18. Czego brakuje ci do pełni szczęścia?
-19. Jaki byłby twój wymarzony partner życiowy?
-20. Jak wyglądałby Twój wymarzony dzień?
-21. Czego w życiu najbardziej się boisz?
+18. Czego najbardziej brakuje Ci w obecnym życiu, żebyś czuł/czuła się spełniony/a?
+19. Jaki byłby Twój wymarzony partner życiowy lub idealna relacja z drugą osobą?
+20. Jak wyglądałby Twój idealny dzień – od poranka do wieczora?
+21. Czego w życiu najbardziej się obawiasz i dlaczego?
 
 (Trzeba wygładzić pytania językowo i płciowo)
 

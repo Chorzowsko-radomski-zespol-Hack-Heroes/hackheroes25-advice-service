@@ -4,32 +4,32 @@
 1. Dobrze odnajduję się w pracy grupowej (Praca z ludźmi)
 2. Efektywniej pracuję, jeśli jestem sam (Praca z ludźmi)
 3. Lubię wykonywać drobne naprawy w domu, albo inną pracę manualną (Majstrowanie)
-4. Lubię/lubiałem pisać rozprawki w szkole, albo prace naukowe na studiach. (Pisanie)
-5. Jestem zaawansowany w ogólnej obsłudze komputera (skróty klawiszowe, pakiety biurowe i inne programy) (Obsługa komputera)
-6. Mam wyczucie estetyki (Sztuka/design)
-7. Lubię wyrażać swoją opinię na dany temat (Pisanie)
-8. Regularnie obcuję ze sztuką (teatr, opera, wystawy i inne) (Sztuka/design)
-9. Umiem myśleć algorytmicznie (Programowanie)
-10. Lubię rozwiązywać złożone problemy (Programowanie, Analiza Danych)
-11. Chcę tworzyć coś, z czego będą korzystać inni ludzie (trochę Programowanie)
-12. Szybko uczę się języków obcych
-13. Jestem sprawny fizycznie
-14. Cenię sobie kontakt z naturą
-15. Poszukuję pracy która zapewni mi stabilność finansową i bezpieczeństwo
-16. Wolę pracować zdalnie, z dowolnego miejsca na świecie
-17. Jestem kiepski w wystąpieniach publicznych i unikam ich jak ognia
-18. Bardzo cenię sobie aspekt finansowy pracy
-19. Chcę by praca rozwijała mnie jako człowieka, nawet kosztem mniejszych zarobków lub mniejszej stabilności
-20. Dobrze wyciągam wnioski na podstawie danych
-21. Interesuję się anatomią człowieka i pracą lekarzy (Biologia/medycyna)
-22. Mam dobrą pamięć do pojęć (Biologia/medycyna)
-23. Lubię brać udział w zorganizowanych projektach grupowych, w szkole, na uczelni lub w pracy
+4. Jestem sprawny fizycznie i nie przeszkadza mi intensywna praca w ruchu. (Manual/Outdoor)
+5. Wolę pracę na świeżym powietrzu, w otoczeniu natury, niż siedzenie przy biurku. (Outdoor)
+6. Lubię pisać dłuższe teksty (np. rozprawki, artykuły, opowiadania, blogi). (Pisanie)
+7. Lubię wyrażać swoją opinię na dany temat, także publicznie lub na piśmie. (Pisanie/komunikacja)
+8. Mam wyczucie estetyki i zwracam uwagę na wygląd rzeczy. (Design)
+9. Regularnie obcuję ze sztuką lub tworzę coś kreatywnego (muzyka, grafika, wideo, rysunek itd.). (Kreatywność)
+10. Jestem zaawansowany w obsłudze komputera (pakiety biurowe, różne programy, skróty klawiszowe). (IT)
+11. Umiem myśleć algorytmicznie – rozbijam problemy na małe kroki i układam z nich procedurę. (Programowanie)
+12. Lubię pisać kod lub tworzyć własne programy/skrypty, nawet proste. (Programowanie+, MEGA klucz)
+13. Często samodzielnie szukam w internecie rozwiązań problemów technicznych/programistycznych i sprawia mi to frajdę. (Programowanie, MEGA klucz)
+14. Dobrze wyciągam wnioski na podstawie danych, liczb lub statystyk. (Analityka)
+15. Poszukuję pracy która zapewni mi stabilność finansową i bezpieczeństwo (Stabilność)
+16. Bardzo cenię sobie aspekt finansowy pracy. (Kasa+)
+17. Chcę, by praca rozwijała mnie jako człowieka, nawet kosztem mniejszych zarobków lub mniejszej stabilności. (Rozwój, trochę kontra 15/18)
+18. Wolę pracować zdalnie, z dowolnego miejsca na świecie. (Remote – sprzyja IT)
+19. Jestem kiepski w wystąpieniach publicznych i unikam ich, jeśli tylko mogę. (Wystąpienia–)
+20. Szybko uczę się języków obcych i sprawia mi to przyjemność. (Języki obce)
+21. Łatwo zapamiętuję szczegółowe informacje, kiedy dotyczą zdrowia lub funkcjonowania organizmu. (Biologia/medycyna)
+22. Dobrze radzę sobie w sytuacjach związanych z chorobą, bólem lub stresem innych osób. (Biologia/medycyna)
+23. Lubię brać udział w zorganizowanych projektach grupowych (w szkole, na uczelni, w pracy). (Projekty / ludzie+)
 
 ## Otwarte
 24. Opisz sytuację z pracy, która dała Ci największą satysfakcję i dlaczego?
 25. Jakie umiejętności lub wiedzę chciałbyś/chciałabyś najbardziej rozwijać w swojej karierze?
 26. Czego najbardziej unikasz lub czego się obawiasz w kontekście pracy zawodowej?
-27. Jak praca wpływa na Twoje życie prywatne - czego oczekujesz od tego balansu?
+27. Jak praca ma wpływać na Twoje życie prywatne?
 
 ## Cechy
 
